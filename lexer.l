@@ -6,6 +6,7 @@
 
 #include "parser.tab.hpp"
 
+extern void yyerror(std::string);
 int yylex();
 %}
 
@@ -61,13 +62,11 @@ int yylex();
 "["           BEGIN(COMMENT);
 <COMMENT>{
   "]"         BEGIN(INITIAL);
+  "["         yyerror("Nested comment.");
   .           ;
 }
 \n|\r\n|\r    {                                                     }
 [[:space:]]   {                                                     }
-.             { 
-                std::cerr << yylineno << std::endl; 
-                return ERROR_INVALID_CHARACTER;
-              }
+.             { yyerror("Invalid character.");                      }
 
 %%

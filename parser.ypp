@@ -5,6 +5,7 @@
   int yylex (void);
   extern FILE *yyin;
   extern int yylineno;
+  extern char *yytext;
   void yyerror (std::string);
 %}
 
@@ -23,80 +24,84 @@
 %token <str> PLUS MINUS TIMES DIV MOD
 %token <str> EQ NEQ LE GE LEQ GEQ
 %token <str> NUM PIDENTIFIER
-%token <str> ERROR_INVALID_CHARACTER
 
-%type <str> value
-%type <str> identifier
+%token <str> ERROR_INVALID_CHARACTER ERROR_NESTED_COMMENT
 
 
 %% /* The grammar follows. */
 
 program:
-  DECLARE declarations T_BEGIN commands END {}
-| T_BEGIN commands END {}
+  DECLARE declarations T_BEGIN commands END                   {}
+| T_BEGIN commands END                                        {}
 ;
 
 declarations: 
-  declarations COMMA PIDENTIFIER {}
-| declarations COMMA PIDENTIFIER LB NUM COLON NUM RB {}
-| PIDENTIFIER {}
-| PIDENTIFIER LB NUM COLON NUM RB {}
+  declarations COMMA PIDENTIFIER                              {}
+| declarations COMMA PIDENTIFIER LB NUM COLON NUM RB          {}
+| PIDENTIFIER                                                 {}
+| PIDENTIFIER LB NUM COLON NUM RB                             {}
 ;
 
 commands:
-  commands command {}
-| command {}
+  commands command                                            {}
+| command                                                     {}
 ;
 
 command:
-  identifier ASSIGN expression SEMICOLON {}
-| IF condition THEN commands ELSE commands ENDIF {}
-| IF condition THEN commands ENDIF {}
-| WHILE condition DO commands ENDWHILE {}
-| DO commands WHILE condition ENDDO {}
-| FOR PIDENTIFIER FROM value TO value DO commands ENDFOR {}
-| FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR {}
-| READ identifier SEMICOLON {}
-| WRITE value SEMICOLON {}
+  identifier ASSIGN expression SEMICOLON                      {}
+| IF condition THEN commands ELSE commands ENDIF              {}
+| IF condition THEN commands ENDIF                            {}
+| WHILE condition DO commands ENDWHILE                        {}
+| DO commands WHILE condition ENDDO                           {}
+| FOR PIDENTIFIER FROM value TO value DO commands ENDFOR      {}
+| FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR  {}
+| READ identifier SEMICOLON                                   {}
+| WRITE value SEMICOLON                                       {}
 ;
 
 expression:
-  value {}
-| value PLUS value {}
-| value MINUS value {}
-| value TIMES value {}
-| value DIV value {}
-| value MOD value {}
+  value                                                       {}
+| value PLUS value                                            {}
+| value MINUS value                                           {}
+| value TIMES value                                           {}
+| value DIV value                                             {}
+| value MOD value                                             {}
 ;
 
 condition:
-  value EQ value {}
-| value NEQ value {}
-| value LE value {}
-| value GE value {}
-| value LEQ value {}
-| value GEQ value {}
+  value EQ value                                              {}
+| value NEQ value                                             {}
+| value LE value                                              {}
+| value GE value                                              {}
+| value LEQ value                                             {}
+| value GEQ value                                             {}
 ;
 
 value:
-  NUM {}
-| identifier {}
+  NUM                                                         {}
+| identifier                                                  {}
 ;
 
 identifier:
-  PIDENTIFIER {}
-| PIDENTIFIER LB PIDENTIFIER RB {}
-| PIDENTIFIER LB NUM RB {}
+  PIDENTIFIER                                                 {}
+| PIDENTIFIER LB PIDENTIFIER RB                               {}
+| PIDENTIFIER LB NUM RB                                       {}
 ;
 
 %%
 
-void yyerror (std::string s) {
-  std::cerr << "[ BŁĄD MORDZIU W LINII " + std::to_string(yylineno) + "] " << s << std::endl;
+void yyerror(std::string s) 
+{
+  std::cerr << "[ ERROR IN LINE " + std::to_string(yylineno) + " ] " 
+            << "yytext: \"" << std::string(yytext) << "\"; "
+            << "error message: " << s << std::endl;
 }
 
 int main(int argc, char **argv)
 {
   yyin = fopen(argv[1], "r");
-  if(yyin!= NULL) yyparse();
+  if (yyin != NULL)
+  {
+    yyparse();
+  } 
 }
