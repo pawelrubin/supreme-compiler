@@ -1,0 +1,4 @@
+*.tab.*
+parser
+*.l.c
+*.imp
