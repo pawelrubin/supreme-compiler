@@ -2,30 +2,47 @@
   #include <string>
   #include <iostream>
 
+  #include "data.hpp"
+
   int yylex (void);
   extern FILE *yyin;
   extern int yylineno;
   extern char *yytext;
   void yyerror (std::string);
+
+  Data *data = new Data();
+
 %}
 
 %define parse.error verbose 
 
-%union {
-  char *strval;
-  long long llval;
+// semantic record
+%union sem_rec {
+  std::string *pidentifier;
+  long long num;
 }
 
-%token <str> SEMICOLON COLON COMMA LB RB
-%token <str> DECLARE T_BEGIN END
-%token <str> ASSIGN
-%token <str> IF THEN ELSE ENDIF WHILE DO ENDWHILE ENDDO FOR FROM TO DOWNTO ENDFOR
-%token <str> READ WRITE
-%token <str> PLUS MINUS TIMES DIV MOD
-%token <str> EQ NEQ LE GE LEQ GEQ
-%token <str> NUM PIDENTIFIER
+// tokens
+%start program
+%token DECLARE T_BEGIN END
+%token ASSIGN
+%token IF WHILE DO
+%token FOR
+%token THEN ELSE ENDIF ENDWHILE ENDDO FROM TO DOWNTO ENDFOR
+%token READ WRITE
+%token EQ NEQ LE GE LEQ GEQ
 
-%token <str> ERROR_INVALID_CHARACTER ERROR_NESTED_COMMENT
+%token <pidentifier> pidentifier
+%token <num> num
+
+// types
+
+// operators
+%left PLUS MINUS
+%left TIMES DIV MOD
+
+// errors
+%token ERROR_INVALID_CHARACTER ERROR_NESTED_COMMENT
 
 
 %% /* The grammar follows. */
@@ -36,10 +53,10 @@ program:
 ;
 
 declarations: 
-  declarations COMMA PIDENTIFIER                              {}
-| declarations COMMA PIDENTIFIER LB NUM COLON NUM RB          {}
-| PIDENTIFIER                                                 {}
-| PIDENTIFIER LB NUM COLON NUM RB                             {}
+  declarations ',' pidentifier                                { data->declare_variable(*$3); }
+| declarations ',' pidentifier '(' num ':' num ')'            { data->declare_array(*$3, $5, $7); }
+| pidentifier                                                 { data->declare_variable(*$1); }
+| pidentifier '(' num ':' num ')'                             { data->declare_array(*$1, $3, $5); }
 ;
 
 commands:
@@ -48,15 +65,15 @@ commands:
 ;
 
 command:
-  identifier ASSIGN expression SEMICOLON                      {}
+  identifier ASSIGN expression ';'                            { }
 | IF condition THEN commands ELSE commands ENDIF              {}
 | IF condition THEN commands ENDIF                            {}
 | WHILE condition DO commands ENDWHILE                        {}
 | DO commands WHILE condition ENDDO                           {}
-| FOR PIDENTIFIER FROM value TO value DO commands ENDFOR      {}
-| FOR PIDENTIFIER FROM value DOWNTO value DO commands ENDFOR  {}
-| READ identifier SEMICOLON                                   {}
-| WRITE value SEMICOLON                                       {}
+| FOR pidentifier FROM value TO value DO commands ENDFOR      {}
+| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {}
+| READ identifier ';'                                         {}
+| WRITE value ';'                                             {}
 ;
 
 expression:
@@ -78,14 +95,14 @@ condition:
 ;
 
 value:
-  NUM                                                         {}
-| identifier                                                  {}
+  num                                                         { /* $$ = $1; std::cerr << "num: " << $1 << std::endl;*/ };
+| identifier                                                  { /* $$ = variables[$1]; */ }
 ;
 
 identifier:
-  PIDENTIFIER                                                 {}
-| PIDENTIFIER LB PIDENTIFIER RB                               {}
-| PIDENTIFIER LB NUM RB                                       {}
+  pidentifier                                                 {}
+| pidentifier '(' pidentifier ')'                             {}
+| pidentifier '(' num ')'                                     {}
 ;
 
 %%
@@ -102,6 +119,11 @@ int main(int argc, char **argv)
   yyin = fopen(argv[1], "r");
   if (yyin != NULL)
   {
-    yyparse();
+    try {
+      yyparse();
+      data->print_symbols();
+    } catch(std::string msg) {
+      yyerror(msg);
+    }
   } 
 }
