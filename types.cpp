@@ -53,6 +53,10 @@ void TBinaryExpression::plus() {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() + rv->get_value());
+    } else {
+      (static_cast<IdentifierValue*>(rvalue))->get_identifier()->load_addr_to_idr(); 
+      code->insert_to_acc(lv->get_value()); 
+      code->add(data->get_IDR());
     }
   }
 }
@@ -118,6 +122,9 @@ void IdentifierValue::load_value() {
   code->loadi(data->get_IDR());
 }
 
+TIdentifier* IdentifierValue::get_identifier() {
+  return this->identifier;
+}
 
 /*
  ********************
@@ -134,6 +141,11 @@ void TVariableIdentifier::load_addr_to_idr() {
   code->store(data->get_IDR());
 }
 
+integer TVariableIdentifier::get_addr() {
+  return this->variable->get_addr();
+}
+
+
 TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   this->variable = static_cast<Variable *>(data->get_symbol(var_name));
@@ -145,6 +157,7 @@ void TArrayVariableIdentifier::load_addr_to_idr() {
   code->store(data->get_IDR());
 }
 
+
 TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   this->num_value = num_value;
@@ -154,3 +167,8 @@ void TArrayNumIdentifier::load_addr_to_idr() {
   code->insert_to_acc(this->array->get_addr(this->num_value));
   code->store(data->get_IDR());
 }
+
+integer TArrayNumIdentifier::get_addr() {
+  return this->array->get_addr(this->num_value);
+}
+

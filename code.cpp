@@ -52,9 +52,14 @@ integer next_power_of_two_exponent(integer n) {
 */
 
 void Code::assign(TIdentifier *identifier, TExpression *expr) {
-  identifier->load_addr_to_idr(); // IDR = id.addr
-  expr->load_expr();              // ACC = expr.value.value
-  this->storei(data->get_IDR());  // p(IDR) = ACC
+  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
+    id->load_addr_to_idr(); // IDR = id.addr
+    expr->load_expr();              // ACC = expr.value.value
+    this->storei(data->get_IDR());  // p(IDR) = ACC
+  } else {
+    expr->load_expr();
+    this->store(identifier->get_addr());
+  }
 }
 
 void Code::write(TValue *value) {

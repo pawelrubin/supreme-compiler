@@ -87,6 +87,7 @@ class IdentifierValue : public TValue {
   public:
     IdentifierValue(TIdentifier *identifier);
     void load_value() override;
+    TIdentifier* get_identifier();
 };
 
 
@@ -101,6 +102,7 @@ class TIdentifier {
 
   public:
     virtual void load_addr_to_idr() {}; // stores identifier address in IDR
+    virtual integer get_addr() { return 0; }
 };
 
 class TVariableIdentifier : public TIdentifier {
@@ -110,6 +112,7 @@ class TVariableIdentifier : public TIdentifier {
   public:
     TVariableIdentifier(ident var_name);
     void load_addr_to_idr() override;
+    integer get_addr();
 };
 
 class TArrayVariableIdentifier : public TIdentifier {
@@ -118,6 +121,7 @@ class TArrayVariableIdentifier : public TIdentifier {
     Variable *variable;
 
   public:
+    using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident array_name, ident index_name);
     void load_addr_to_idr() override; 
 };
@@ -130,5 +134,6 @@ class TArrayNumIdentifier : public TIdentifier {
   public:
     TArrayNumIdentifier(ident array_name, integer num_value);
     void load_addr_to_idr() override; 
+    integer get_addr();
 };
 
