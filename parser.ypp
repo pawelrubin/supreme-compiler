@@ -2,7 +2,10 @@
   #include <string>
   #include <iostream>
 
+  #include "code.hpp"
   #include "data.hpp"
+  #include "typedefs.hpp"
+  #include "types.hpp"
 
   int yylex (void);
   extern FILE *yyin;
@@ -11,15 +14,18 @@
   void yyerror (std::string);
 
   Data *data = new Data();
-
+  Code *code = new Code();
 %}
 
 %define parse.error verbose 
 
 // semantic record
 %union sem_rec {
-  std::string *pidentifier;
-  long long num;
+  ident *pidentifier;
+  integer num;
+  TValue *val;
+  TExpression *expr;
+  TIdentifier *id;
 }
 
 // tokens
@@ -36,6 +42,9 @@
 %token <num> num
 
 // types
+%type <val> value
+%type <expr> expression
+%type <id> identifier
 
 // operators
 %left PLUS MINUS
@@ -48,8 +57,8 @@
 %% /* The grammar follows. */
 
 program:
-  DECLARE declarations T_BEGIN commands END                   {}
-| T_BEGIN commands END                                        {}
+  DECLARE declarations T_BEGIN commands END                   { code->end_code(); }
+| T_BEGIN commands END                                        { code->end_code(); }
 ;
 
 declarations: 
@@ -65,7 +74,7 @@ commands:
 ;
 
 command:
-  identifier ASSIGN expression ';'                            { }
+  identifier ASSIGN expression ';'                            { code->assign($1, $3); }
 | IF condition THEN commands ELSE commands ENDIF              {}
 | IF condition THEN commands ENDIF                            {}
 | WHILE condition DO commands ENDWHILE                        {}
@@ -95,14 +104,14 @@ condition:
 ;
 
 value:
-  num                                                         { /* $$ = $1; std::cerr << "num: " << $1 << std::endl;*/ };
-| identifier                                                  { /* $$ = variables[$1]; */ }
+  num                                                         { $$ = new NumberValue($1); std::cerr << "numberValue from integer: " << $1 << std::endl; };
+| identifier                                                  { $$ = new IdentifierValue($1); std::cerr << "identifierValue from TIdentifier: " << $1->get_mem_addr() << std::endl; }
 ;
 
 identifier:
-  pidentifier                                                 {}
-| pidentifier '(' pidentifier ')'                             {}
-| pidentifier '(' num ')'                                     {}
+  pidentifier                                                 { $$ = new TVariableIdentifier(*$1); }
+| pidentifier '(' pidentifier ')'                             { $$ = new TArrayVariableIdentifier(*$1, *$3); std::cerr << "arrayVariableIdentifier: " << *$1 << " " << $3 << std::endl; }
+| pidentifier '(' num ')'                                     { $$ = new TArrayNumIdentifier(*$1, $3); std::cerr << "arrayNumIdentifier: " << *$1 << " " << $3 << std::endl; }
 ;
 
 %%
@@ -112,6 +121,7 @@ void yyerror(std::string s)
   std::cerr << "[ ERROR IN LINE " + std::to_string(yylineno) + " ] " 
             << "yytext: \"" << std::string(yytext) << "\"; "
             << "error message: " << s << std::endl;
+  exit(1);
 }
 
 int main(int argc, char **argv)
@@ -120,8 +130,10 @@ int main(int argc, char **argv)
   if (yyin != NULL)
   {
     try {
+      // code->start_code();
       yyparse();
       data->print_symbols();
+      code->print_code();
     } catch(std::string msg) {
       yyerror(msg);
     }

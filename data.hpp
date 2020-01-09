@@ -1,43 +1,50 @@
 #pragma once
 
+#include "typedefs.hpp"
+
 #include <unordered_map>
 #include <string>
 
-typedef std::string ident;
 
 class Symbol {
   protected:
-    long long offset;
+    integer addr;
 
   public:
-    explicit Symbol(long long offset);
+    explicit Symbol(integer addr);
     Symbol() = default;
-    long long get_offset();
+    virtual integer get_addr();
 };
 
 class Variable : public Symbol {
   using Symbol::Symbol;
+
+  private:
+    bool is_initialized;  
 };
 
 class Array : public Symbol {
   private:
-    long long start;
-    long long end;
+    integer start;
+    integer end;
 
   public:
-    Array(long long offset, long long start, long long end);
+    using Symbol::get_addr;
+    Array(integer addr, integer start, integer end);
+    integer get_addr(integer index);
 };
 
 class Data {
   private:
-    long long memory_offset = 0;
-    std::unordered_map<ident, Symbol> symbols;
-    void check_context(ident id);
-    void update_offset(long long value);
+    integer memory_offset = 3; // first variable at p(3)
+    std::unordered_map<ident, Symbol*> symbols;
+    bool is_declared(ident id);
+    void update_offset(integer value);
 
   public:
     void declare_variable(ident id);
-    void declare_array(ident id, long long start, long long end);
+    void declare_array(ident id, integer start, integer end);
     void print_symbols();
+    Symbol* get_symbol(ident id);
 };
 

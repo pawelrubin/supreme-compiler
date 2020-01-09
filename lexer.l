@@ -3,6 +3,8 @@
 %{
 #include <string>
 #include <iostream>
+#include "types.hpp"
+#include "typedefs.hpp"
 #include "parser.tab.hpp"
 
 extern void yyerror(std::string);
@@ -69,6 +71,6 @@ SPECIAL_CHARS   [\;\(\)\:\,]
 }
 \n|\r\n|\r      {                                               }
 [[:space:]]     {                                               }
-.               { yyerror("Invalid character.");                }
+.               { throw std::string("Invalid character.");                }
 
 %%
