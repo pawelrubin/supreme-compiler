@@ -21,11 +21,17 @@ class Code {
     void print_code();
 
     void assign(TIdentifier *identifier, TExpression *expr);
+    void read(TIdentifier *identifier);
+    void write(TValue *value);
 
     void inc();
     void dec();
     void store(integer i);
     void load(integer i);
+    void storei(integer i);
+    void loadi(integer i);
+     
+    void insert_to_acc(integer value);
 
     void reset_acc();
 };

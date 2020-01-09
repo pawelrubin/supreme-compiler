@@ -6,6 +6,8 @@
 #include "types.hpp"
 #include "typedefs.hpp"
 #include "parser.tab.hpp"
+#include "data.hpp"
+#include "code.hpp"
 
 extern void yyerror(std::string);
 int yylex();

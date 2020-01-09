@@ -36,12 +36,15 @@ class Array : public Symbol {
 
 class Data {
   private:
-    integer memory_offset = 3; // first variable at p(3)
+    integer memory_offset = 1; // p(0) = ACC
     std::unordered_map<ident, Symbol*> symbols;
+    
     bool is_declared(ident id);
     void update_offset(integer value);
 
   public:
+    integer get_id_reg_addr(); // first cell after declarations
+    integer get_val_reg_addr(); // second cell after declarations
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);
     void print_symbols();

@@ -3,33 +3,31 @@
 #include "typedefs.hpp"
 #include "data.hpp"
 
+class Code;
+
+extern Code *code;
 extern Data *data;
 
-class TExpression {};
+class TExpresion;
+class TValue;
+class TIdentifier;
 
-// Identifier
-class TIdentifier {
-  protected:
-    integer mem_addr;
+class TExpression {
 
   public:
-    integer get_mem_addr();
+    TExpression() = default;
+    void load_expr();
 };
 
-class TVariableIdentifier : public TIdentifier {
+class TValueExpression : public TExpression {
+  private:
+    TValue *value;
+
   public:
-    TVariableIdentifier(ident var_name);
+    TValueExpression(TValue *value);
+    void load_expr() ;
 };
 
-class TArrayVariableIdentifier : public TIdentifier {
-  public:
-    TArrayVariableIdentifier(ident array_name, ident index_name);
-};
-
-class TArrayNumIdentifier : public TIdentifier {
-  public:
-    TArrayNumIdentifier(ident array_name, integer num_value);
-};
 
 
 // Value
@@ -52,5 +50,37 @@ class IdentifierValue : public TValue {
 
   public:
     IdentifierValue(TIdentifier *identifier);
+};
+
+
+// Identifier
+class TIdentifier {
+  protected:
+    integer mem_addr;
+
+  public:
+    integer get_mem_addr();
+    virtual void load_identifier_to_reg() {};
+};
+
+class TVariableIdentifier : public TIdentifier {
+  private:
+    Variable *variable;
+
+  public:
+    TVariableIdentifier(ident var_name);
+    void load_identifier_to_reg() override; // stores identifier address in identifier register
+};
+
+class TArrayVariableIdentifier : public TIdentifier {
+  public:
+    TArrayVariableIdentifier(ident array_name, ident index_name);
+    // void load_identifier_to_reg() override; 
+};
+
+class TArrayNumIdentifier : public TIdentifier {
+  public:
+    TArrayNumIdentifier(ident array_name, integer num_value);
+    // void load_identifier_to_reg() override; 
 };
 

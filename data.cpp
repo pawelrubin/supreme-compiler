@@ -3,9 +3,12 @@
 
 #include "data.hpp"
 
-bool Data::is_declared(ident id) {
-  return this->symbols.count(id) != 0;
-}
+
+/*
+ **********************
+ *       SYMBOL       * 
+ **********************
+ */
 
 Symbol::Symbol(integer addr) {
   this->addr = addr;
@@ -13,6 +16,17 @@ Symbol::Symbol(integer addr) {
 
 integer Symbol::get_addr() {
   return this->addr;
+}
+
+
+/*
+ **********************
+ *        DATA        * 
+ **********************
+ */
+
+bool Data::is_declared(ident id) {
+  return this->symbols.count(id) != 0;
 }
 
 void Data::update_offset(integer value) {
@@ -31,15 +45,6 @@ void Data::declare_array(ident id, integer start, integer end) {
   this->update_offset(end - start);
 }
 
-Array::Array(integer addr, integer start, integer end) : Symbol(addr) {
-  this->start = start;
-  this->end = end;
-}
-
-integer Array::get_addr(integer index) {
-  return this->get_addr() - this->start + index;
-}
-
 void Data::print_symbols() {
   for (auto &[k, v] : this->symbols) {
     std::cerr << "Symbol name is " << k << " and its addr = " << v->get_addr() << std::endl;
@@ -49,4 +54,28 @@ void Data::print_symbols() {
 Symbol* Data::get_symbol(ident id) {
   if (!this->is_declared(id)) throw std::string("Variable " + id + " hasn't been declared.");
   return this->symbols[id];
+}
+
+integer Data::get_id_reg_addr() {
+  return this->memory_offset + 1;
+}
+
+
+integer Data::get_val_reg_addr() {
+  return this->memory_offset + 2;
+}
+
+/*
+ **********************
+ *        ARRAY       * 
+ **********************
+ */
+
+Array::Array(integer addr, integer start, integer end) : Symbol(addr) {
+  this->start = start;
+  this->end = end;
+}
+
+integer Array::get_addr(integer index) {
+  return this->get_addr() - this->start + index;
 }
