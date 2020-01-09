@@ -1,5 +1,6 @@
 %option noyywrap
 %option yylineno
+%option nounput
 %{
 #include <string>
 #include <iostream>
@@ -14,7 +15,7 @@ int yylex();
 
 %}
 
-NUMBER          [[:digit:]]+
+NUMBER          \-?[[:digit:]]+
 PIDENTIFIER     [_a-z]+
 SPECIAL_CHARS   [\;\(\)\:\,]
 
@@ -73,6 +74,6 @@ SPECIAL_CHARS   [\;\(\)\:\,]
 }
 \n|\r\n|\r      {                                               }
 [[:space:]]     {                                               }
-.               { throw std::string("Invalid character.");                }
+.               { throw std::string("Invalid character.");      }
 
 %%

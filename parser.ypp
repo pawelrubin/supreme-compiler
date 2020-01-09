@@ -57,55 +57,55 @@
 %% /* The grammar follows. */
 
 program:
-  DECLARE declarations T_BEGIN commands END                   { code->end_code(); }
-| T_BEGIN commands END                                        { code->end_code(); }
+  DECLARE declarations T_BEGIN commands END                   { code->end_code();                            }
+| T_BEGIN commands END                                        { code->end_code();                            }
 ;
 
 declarations: 
-  declarations ',' pidentifier                                { data->declare_variable(*$3); }
-| declarations ',' pidentifier '(' num ':' num ')'            { data->declare_array(*$3, $5, $7); }
-| pidentifier                                                 { data->declare_variable(*$1); }
-| pidentifier '(' num ':' num ')'                             { data->declare_array(*$1, $3, $5); }
+  declarations ',' pidentifier                                { data->declare_variable(*$3);                 }
+| declarations ',' pidentifier '(' num ':' num ')'            { data->declare_array(*$3, $5, $7);            }
+| pidentifier                                                 { data->declare_variable(*$1);                 }
+| pidentifier '(' num ':' num ')'                             { data->declare_array(*$1, $3, $5);            }
 ;
 
 commands:
-  commands command                                            {}
-| command                                                     {}
+  commands command                                            {                                              }
+| command                                                     {                                              }
 ;
 
 command:
-  identifier ASSIGN expression ';'                            { code->assign($1, $3); }
-| IF condition THEN commands ELSE commands ENDIF              {}
-| IF condition THEN commands ENDIF                            {}
-| WHILE condition DO commands ENDWHILE                        {}
-| DO commands WHILE condition ENDDO                           {}
-| FOR pidentifier FROM value TO value DO commands ENDFOR      {}
-| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {                       }
-| READ identifier ';'                                         { code->read($2);       }
-| WRITE value ';'                                             { code->write($2);      }
+  identifier ASSIGN expression ';'                            { code->assign($1, $3);                        }
+| IF condition THEN commands ELSE commands ENDIF              {                                              }
+| IF condition THEN commands ENDIF                            {                                              }
+| WHILE condition DO commands ENDWHILE                        {                                              }
+| DO commands WHILE condition ENDDO                           {                                              }
+| FOR pidentifier FROM value TO value DO commands ENDFOR      {                                              }
+| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {                                              }
+| READ identifier ';'                                         { code->read($2);                              }
+| WRITE value ';'                                             { code->write($2);                             }
 ;
 
 expression:
-  value                                                       { $$ = new TValueExpression($1); }
-| value PLUS value                                            {}
-| value MINUS value                                           {}
-| value TIMES value                                           {}
-| value DIV value                                             {}
-| value MOD value                                             {}
+  value                                                       { $$ = new TValueExpression($1);               }
+| value PLUS value                                            {                                              }
+| value MINUS value                                           {                                              }
+| value TIMES value                                           {                                              }
+| value DIV value                                             {                                              }
+| value MOD value                                             {                                              }
 ;
 
 condition:
-  value EQ value                                              {}
-| value NEQ value                                             {}
-| value LE value                                              {}
-| value GE value                                              {}
-| value LEQ value                                             {}
-| value GEQ value                                             {}
+  value EQ value                                              {                                              }
+| value NEQ value                                             {                                              }
+| value LE value                                              {                                              }
+| value GE value                                              {                                              }
+| value LEQ value                                             {                                              }
+| value GEQ value                                             {                                              }
 ;
 
 value:
-  num                                                         { $$ = new NumberValue($1);     }
-| identifier                                                  { $$ = new IdentifierValue($1); }
+  num                                                         { $$ = new NumberValue($1);                    }
+| identifier                                                  { $$ = new IdentifierValue($1);                }
 ;
 
 identifier:
@@ -116,26 +116,32 @@ identifier:
 
 %%
 
-void yyerror(std::string s) 
-{
+void yyerror(std::string s) {
   std::cerr << "[ ERROR IN LINE " + std::to_string(yylineno) + " ] " 
             << "yytext: \"" << std::string(yytext) << "\"; "
             << "error message: " << s << std::endl;
   exit(1);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
+  
+  if (argc < 3) {
+    std::cerr << "Not enough arguments" << std::endl;
+    exit(1);
+  }
+  
   yyin = fopen(argv[1], "r");
-  if (yyin != NULL)
-  {
+  
+  if (yyin != NULL) {
     try {
-      // code->start_code();
       yyparse();
       data->print_symbols();
       code->print_code();
+      code->fprint_code(argv[2]);
     } catch(std::string msg) {
       yyerror(msg);
     }
-  } 
+  } else {
+    exit(2);
+  }
 }

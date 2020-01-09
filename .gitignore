@@ -1,7 +1,10 @@
 *.tab.*
-parser
-*.l.c
+*.c
 *.imp
 *.o
 compiler
 *.pdf
+vm
+*.mr
+ast.hpp
+.vscode

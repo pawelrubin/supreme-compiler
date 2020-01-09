@@ -32,6 +32,7 @@ class Array : public Symbol {
     using Symbol::get_addr;
     Array(integer addr, integer start, integer end);
     integer get_addr(integer index);
+    integer get_norm_addr();
 };
 
 class Data {
@@ -43,7 +44,7 @@ class Data {
     void update_offset(integer value);
 
   public:
-    integer get_id_reg_addr(); // first cell after declarations
+    integer get_IDR(); // get IDR addr
     integer get_val_reg_addr(); // second cell after declarations
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);

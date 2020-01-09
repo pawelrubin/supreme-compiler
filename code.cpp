@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <fstream>
 
 // p(0) = 0; p(1) = 1;
 void Code::start_code() {
@@ -22,68 +23,137 @@ codeList Code::get_code() {
 }
 
 void Code::print_code() {
-  std::cerr << std::endl;
+  std::cout << std::endl;
   for (auto &line : this->code) {
-    std::cerr << line << std::endl;
+    std::cout << line << std::endl;
   }
 }
 
+void Code::fprint_code(std::string filename) {
+  std::ofstream fout(filename);
+  for (auto &line : this->code) {
+    fout << line << std::endl;
+  }
+  fout.close();
+}
+
 void Code::update_offset(integer value) {
-  this->code_offset += value;
-}
-
-void Code::assign(TIdentifier *identifier, TExpression *expr) {
-  identifier->load_identifier_to_reg();   // IDR = id.addr
-  static_cast<TValueExpression *>(expr)->load_expr();                      // ACC = expr.value.value
-  this->storei(data->get_id_reg_addr());  // p(IDR) = ACC
-}
-
-void Code::write(TValue *value) {
-  // TODO: implement
-}
-
-void Code::read(TIdentifier *identifier) {
-  // TODO: implement
+  this->instruction_count += value;
 }
 
 integer next_power_of_two_exponent(integer n) {
   return ceil(log2(n));
 }
 
-void Code::inc() {
-  this->code.push_back("INC");
+/*
+ *************************
+ * high order operations *
+ *************************
+*/
+
+void Code::assign(TIdentifier *identifier, TExpression *expr) {
+  identifier->load_addr_to_idr(); // IDR = id.addr
+  expr->load_expr();              // ACC = expr.value.value
+  this->storei(data->get_IDR());  // p(IDR) = ACC
+}
+
+void Code::write(TValue *value) {
+  value->load_value(); // ACC = value.value
+  this->put();         // PUT
+}
+
+void Code::read(TIdentifier *identifier) {
+  identifier->load_addr_to_idr(); // IDR = id.addr
+  this->get();                    // ACC = input
+  this->storei(data->get_IDR());  // p(IDR) = ACC
+}
+
+
+/*
+ ***********
+ * atomics *
+ ***********
+*/
+
+void Code::atomic(std::string instr) {
+  this->code.push_back(instr);
   this->update_offset(1);
 }
 
-void Code::dec() {
-  this->code.push_back("DEC");
+void Code::atomic(std::string instr, integer i) {
+  this->code.push_back(instr + " " + std::to_string(i));
   this->update_offset(1);
 }
 
-void Code::store(integer i) {
-  this->code.push_back("STORE " + std::to_string(i));
-  this->update_offset(1);
+void Code::get() {
+  this->atomic("GET");
 }
 
-void Code::storei(integer i) {
-  this->code.push_back("STOREI " + std::to_string(i));
-  this->update_offset(1);
-}
-
-void Code::loadi(integer i) {
-  this->code.push_back("LOADI " + std::to_string(i));
-  this->update_offset(1);
+void Code::put() {
+  this->atomic("PUT");
 }
 
 void Code::load(integer i) {
-  this->code.push_back("LOAD " + i);
-  this->update_offset(1);
+  this->atomic("LOAD", i);
 }
 
-void Code::reset_acc() {
-  this->code.push_back("SUB 0");
-  this->update_offset(1);
+void Code::store(integer i) {
+  this->atomic("STORE", i);
 }
+
+void Code::loadi(integer i) {
+  this->atomic("LOADI", i);
+}
+
+void Code::storei(integer i) {
+  this->atomic("STOREI", i);
+}
+
+void Code::add(integer i) {
+  this->atomic("ADD", i);
+}
+
+void Code::sub(integer i) {
+  this->atomic("SUB", i);
+}
+
+void Code::shift(integer i) {
+  this->atomic("SHIFT", i);
+}
+
+void Code::inc() {
+  this->atomic("INC");
+}
+
+void Code::dec() {
+  this->atomic("DEC");
+}
+
+void Code::jump(integer j) {
+  this->atomic("JUMP", j);
+}
+
+void Code::jpos(integer j) {
+  this->atomic("JPOS", j);
+}
+
+void Code::jzero(integer j) {
+  this->atomic("JZEO", j);
+}
+
+void Code::jneg(integer j) {
+  this->atomic("JNEG", j);
+}
+
+void Code::halt() {
+  this->atomic("HALT");
+}
+
+/*
+ *********************
+ * memory managmnent *
+ *********************
+*/
 
 void Code::insert_to_acc(integer value){
   this->reset_acc();
@@ -96,4 +166,8 @@ void Code::insert_to_acc(integer value){
       this->dec();
     }
   }
+}
+
+void Code::reset_acc() {
+  this->sub(0);
 }

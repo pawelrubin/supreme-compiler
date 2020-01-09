@@ -12,11 +12,16 @@ class TExpresion;
 class TValue;
 class TIdentifier;
 
-class TExpression {
 
+/*
+ ********************
+ *    EXPRESSION    *
+ ********************
+ */
+
+class TExpression {
   public:
-    TExpression() = default;
-    void load_expr();
+    virtual void load_expr() {};
 };
 
 class TValueExpression : public TExpression {
@@ -29,19 +34,25 @@ class TValueExpression : public TExpression {
 };
 
 
+/*
+ ***************
+ *    VALUE    *
+ ***************
+ */
 
-// Value
 class TValue {
   protected:
     integer value;
 
   public:
     integer get_value();
+    virtual void load_value() {}; // laods variable value to ACC
 };
 
 class NumberValue : public TValue {
   public:
     NumberValue(integer value);
+    void load_value() override;
 };
 
 class IdentifierValue : public TValue {
@@ -50,17 +61,21 @@ class IdentifierValue : public TValue {
 
   public:
     IdentifierValue(TIdentifier *identifier);
+    void load_value() override;
 };
 
 
-// Identifier
+/*
+ ********************
+ *    IDENTIFIER    *
+ ********************
+ */
+
 class TIdentifier {
   protected:
-    integer mem_addr;
 
   public:
-    integer get_mem_addr();
-    virtual void load_identifier_to_reg() {};
+    virtual void load_addr_to_idr() {}; // stores identifier address in IDR
 };
 
 class TVariableIdentifier : public TIdentifier {
@@ -69,18 +84,26 @@ class TVariableIdentifier : public TIdentifier {
 
   public:
     TVariableIdentifier(ident var_name);
-    void load_identifier_to_reg() override; // stores identifier address in identifier register
+    void load_addr_to_idr() override;
 };
 
 class TArrayVariableIdentifier : public TIdentifier {
+  private:
+    Array *array;
+    Variable *variable;
+
   public:
     TArrayVariableIdentifier(ident array_name, ident index_name);
-    // void load_identifier_to_reg() override; 
+    void load_addr_to_idr() override; 
 };
 
 class TArrayNumIdentifier : public TIdentifier {
+  private:
+    Array *array;
+    integer num_value;
+
   public:
     TArrayNumIdentifier(ident array_name, integer num_value);
-    // void load_identifier_to_reg() override; 
+    void load_addr_to_idr() override; 
 };
 

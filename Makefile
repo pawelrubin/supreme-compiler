@@ -18,17 +18,17 @@ data: data.cpp
 lexer: lexer.c
 	g++ $(FLAGS) -o lexer.o -c lexer.c
 
-lexer.c: lexer.l
-	flex -o lexer.c lexer.l
-
 parser: parser.tab.cpp
 	g++ $(FLAGS) -o parser.o -c parser.tab.cpp
+
+lexer.c: lexer.l
+	flex -o lexer.c lexer.l
 
 parser.tab.cpp: parser.ypp
 	bison -d parser.ypp
 
 clean:
-	rm -f *.o *.tab.cpp *.tab.hpp lexer.l.*
+	rm -f *.o *.tab.cpp *.tab.hpp lexer.c
 
 cleanall: clean
 	rm -f compiler

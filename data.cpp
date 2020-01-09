@@ -56,10 +56,9 @@ Symbol* Data::get_symbol(ident id) {
   return this->symbols[id];
 }
 
-integer Data::get_id_reg_addr() {
+integer Data::get_IDR() {
   return this->memory_offset + 1;
 }
-
 
 integer Data::get_val_reg_addr() {
   return this->memory_offset + 2;
@@ -78,4 +77,8 @@ Array::Array(integer addr, integer start, integer end) : Symbol(addr) {
 
 integer Array::get_addr(integer index) {
   return this->get_addr() - this->start + index;
+}
+
+integer Array::get_norm_addr() {
+  return this->get_addr() - this->start;
 }

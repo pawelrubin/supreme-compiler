@@ -1,42 +1,26 @@
 #include "types.hpp"
 #include "code.hpp"
 
-integer TIdentifier::get_mem_addr() {
-  return this->mem_addr;
+/*
+ ********************
+ *    EXPRESSION    *
+ ********************
+ */
+
+TValueExpression::TValueExpression(TValue *value) {
+  this->value = value;
 }
 
-//
-
-TVariableIdentifier::TVariableIdentifier(ident var_name) {
-  this->variable = static_cast<Variable *>(data->get_symbol(var_name));
-  this->mem_addr = this->variable->get_addr();
+void TValueExpression::load_expr() {
+  code->insert_to_acc(this->value->get_value());
 }
 
-void TVariableIdentifier::load_identifier_to_reg() {
-  code->insert_to_acc(this->variable->get_addr());
-  code->store(data->get_id_reg_addr());
-}
 
-//
-
-TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
-  this->mem_addr = -1;
-}
-
-// void TArrayVariableIdentifier::load_identifier_to_reg() {
-//   // code->insert_to_acc(this->variable->get_addr());
-//   // code->store(data->get_id_reg_addr());
-// }
-
-
-TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) {
-  this->mem_addr = (static_cast<Array *>(data->get_symbol(arr_name)))->get_addr(num_value);
-}
-
-// void TArrayNumIdentifier::load_identifier_to_reg() {
-//   // code->insert_to_acc(this->variable->get_addr());
-//   // code->store(data->get_id_reg_addr());
-// }
+/*
+ ***************
+ *    VALUE    *
+ ***************
+ */
 
 NumberValue::NumberValue(integer value) {
   this->value = value;
@@ -46,17 +30,52 @@ integer TValue::get_value() {
   return this->value;
 }
 
+void NumberValue::load_value() {
+  code->insert_to_acc(this->value);
+}
+
 IdentifierValue::IdentifierValue(TIdentifier *identifier) {
   this->identifier = identifier;
 }
 
-
-// Expression
-
-TValueExpression::TValueExpression(TValue *value) {
-  this->value = value;
+void IdentifierValue::load_value() {
+  this->identifier->load_addr_to_idr();
+  code->loadi(data->get_IDR());
 }
 
-void TValueExpression::load_expr() {
-  code->insert_to_acc(this->value->get_value());
+
+/*
+ ********************
+ *    IDENTIFIER    *
+ ********************
+ */
+
+TVariableIdentifier::TVariableIdentifier(ident var_name) {
+  this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+}
+
+void TVariableIdentifier::load_addr_to_idr() {
+  code->insert_to_acc(this->variable->get_addr());
+  code->store(data->get_IDR());
+}
+
+TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
+  this->array = static_cast<Array *>(data->get_symbol(arr_name));
+  this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+}
+
+void TArrayVariableIdentifier::load_addr_to_idr() {
+  code->insert_to_acc(this->array->get_norm_addr());
+  code->add(this->variable->get_addr());
+  code->store(data->get_IDR());
+}
+
+TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) {
+  this->array = static_cast<Array *>(data->get_symbol(arr_name));
+  this->num_value = num_value;
+}
+
+void TArrayNumIdentifier::load_addr_to_idr() {
+  code->insert_to_acc(this->array->get_addr(this->num_value));
+  code->store(data->get_IDR());
 }
