@@ -44,8 +44,8 @@ class Data {
     void update_offset(integer value);
 
   public:
-    integer get_IDR(); // get IDR addr
-    integer get_val_reg_addr(); // second cell after declarations
+    integer get_IDR();
+    integer get_OPR();
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);
     void print_symbols();

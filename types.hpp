@@ -13,6 +13,14 @@ class TValue;
 class TIdentifier;
 
 
+enum class BinaryOperator {
+  PLUS,
+  MINUS,
+  TIMES,
+  DIV,
+  MOD
+};
+
 /*
  ********************
  *    EXPRESSION    *
@@ -30,8 +38,25 @@ class TValueExpression : public TExpression {
 
   public:
     TValueExpression(TValue *value);
-    void load_expr() ;
+    void load_expr() override;
 };
+
+class TBinaryExpression : public TExpression {
+  private:
+    TValue *lvalue;
+    TValue *rvalue;
+    BinaryOperator op;
+    void plus();
+    void minus();
+    void times();
+    void div();
+    void mod();
+
+  public:
+    TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOperator op);
+    void load_expr() override;
+};
+
 
 
 /*

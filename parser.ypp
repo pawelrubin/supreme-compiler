@@ -57,55 +57,55 @@
 %% /* The grammar follows. */
 
 program:
-  DECLARE declarations T_BEGIN commands END                   { code->end_code();                            }
-| T_BEGIN commands END                                        { code->end_code();                            }
+  DECLARE declarations T_BEGIN commands END                   { code->end_code(); }
+| T_BEGIN commands END                                        { code->end_code(); }
 ;
 
 declarations: 
-  declarations ',' pidentifier                                { data->declare_variable(*$3);                 }
-| declarations ',' pidentifier '(' num ':' num ')'            { data->declare_array(*$3, $5, $7);            }
-| pidentifier                                                 { data->declare_variable(*$1);                 }
-| pidentifier '(' num ':' num ')'                             { data->declare_array(*$1, $3, $5);            }
+  declarations ',' pidentifier                                { data->declare_variable(*$3);      }
+| declarations ',' pidentifier '(' num ':' num ')'            { data->declare_array(*$3, $5, $7); }
+| pidentifier                                                 { data->declare_variable(*$1);      }
+| pidentifier '(' num ':' num ')'                             { data->declare_array(*$1, $3, $5); }
 ;
 
 commands:
-  commands command                                            {                                              }
-| command                                                     {                                              }
+  commands command                                            {}
+| command                                                     {}
 ;
 
 command:
-  identifier ASSIGN expression ';'                            { code->assign($1, $3);                        }
-| IF condition THEN commands ELSE commands ENDIF              {                                              }
-| IF condition THEN commands ENDIF                            {                                              }
-| WHILE condition DO commands ENDWHILE                        {                                              }
-| DO commands WHILE condition ENDDO                           {                                              }
-| FOR pidentifier FROM value TO value DO commands ENDFOR      {                                              }
-| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {                                              }
-| READ identifier ';'                                         { code->read($2);                              }
-| WRITE value ';'                                             { code->write($2);                             }
+  identifier ASSIGN expression ';'                            { code->assign($1, $3); }
+| IF condition THEN commands ELSE commands ENDIF              {                       }
+| IF condition THEN commands ENDIF                            {                       }
+| WHILE condition DO commands ENDWHILE                        {                       }
+| DO commands WHILE condition ENDDO                           {                       }
+| FOR pidentifier FROM value TO value DO commands ENDFOR      {                       }
+| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {                       }
+| READ identifier ';'                                         { code->read($2);       }
+| WRITE value ';'                                             { code->write($2);      }
 ;
 
 expression:
-  value                                                       { $$ = new TValueExpression($1);               }
-| value PLUS value                                            {                                              }
-| value MINUS value                                           {                                              }
-| value TIMES value                                           {                                              }
-| value DIV value                                             {                                              }
-| value MOD value                                             {                                              }
+  value                                                       { $$ = new TValueExpression($1);                             }
+| value PLUS value                                            { $$ = new TBinaryExpression($1, $3, BinaryOperator::PLUS);  }
+| value MINUS value                                           { $$ = new TBinaryExpression($1, $3, BinaryOperator::MINUS); }
+| value TIMES value                                           { $$ = new TBinaryExpression($1, $3, BinaryOperator::TIMES); }
+| value DIV value                                             { $$ = new TBinaryExpression($1, $3, BinaryOperator::DIV);   }
+| value MOD value                                             { $$ = new TBinaryExpression($1, $3, BinaryOperator::MOD);   }
 ;
 
 condition:
-  value EQ value                                              {                                              }
-| value NEQ value                                             {                                              }
-| value LE value                                              {                                              }
-| value GE value                                              {                                              }
-| value LEQ value                                             {                                              }
-| value GEQ value                                             {                                              }
+  value EQ value                                              { }
+| value NEQ value                                             { }
+| value LE value                                              { }
+| value GE value                                              { }
+| value LEQ value                                             { }
+| value GEQ value                                             { }
 ;
 
 value:
-  num                                                         { $$ = new NumberValue($1);                    }
-| identifier                                                  { $$ = new IdentifierValue($1);                }
+  num                                                         { $$ = new NumberValue($1);     }
+| identifier                                                  { $$ = new IdentifierValue($1); }
 ;
 
 identifier:
@@ -135,8 +135,9 @@ int main(int argc, char **argv) {
   if (yyin != NULL) {
     try {
       yyparse();
-      data->print_symbols();
-      code->print_code();
+      std::cout << "Compiled successfully" << std::endl;
+      // data->print_symbols();
+      // code->print_code();
       code->fprint_code(argv[2]);
     } catch(std::string msg) {
       yyerror(msg);

@@ -60,7 +60,7 @@ integer Data::get_IDR() {
   return this->memory_offset + 1;
 }
 
-integer Data::get_val_reg_addr() {
+integer Data::get_OPR() {
   return this->memory_offset + 2;
 }
 

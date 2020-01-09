@@ -155,14 +155,14 @@ void Code::halt() {
  *********************
 */
 
-void Code::insert_to_acc(integer value){
+void Code::insert_to_acc(integer value) { // TODO: Optimize constants generation.
   this->reset_acc();
   if (value > 0) {
     for (int i = 0; i < value; i++) {
       this->inc();
     }
   } else {
-    for (int i = value; i > 0; i--) {
+    for (int i = value; i < 0; i++) {
       this->dec();
     }
   }

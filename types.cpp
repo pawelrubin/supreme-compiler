@@ -15,7 +15,82 @@ void TValueExpression::load_expr() {
   code->insert_to_acc(this->value->get_value());
 }
 
+TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOperator op) {
+  this->lvalue = lvalue;
+  this->rvalue = rvalue;
+  this->op = op;
+}
 
+void TBinaryExpression::load_expr() {
+  switch (this->op) {
+  case BinaryOperator::PLUS:
+    this->plus();
+    break;
+  
+  case BinaryOperator::MINUS:
+    this->minus();
+    /* TODO: Substraction */
+    break;
+
+  case BinaryOperator::TIMES:
+    this->times();
+    /* TODO: Multiplication */
+    break;
+  
+  case BinaryOperator::DIV:
+    this->div();
+    /* TODO: Division */
+    break;
+  
+  case BinaryOperator::MOD:
+    this->mod();
+    /* TODO: Modulo */
+    break;
+  }
+}
+
+void TBinaryExpression::plus() {
+  if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      code->insert_to_acc(lv->get_value() + rv->get_value());
+    }
+  }
+}
+
+
+void TBinaryExpression::minus() {
+  if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      code->insert_to_acc(lv->get_value() - rv->get_value());
+    }
+  }
+}
+
+void TBinaryExpression::times() {
+  if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      code->insert_to_acc(lv->get_value() * rv->get_value());
+    }
+  }
+}
+
+void TBinaryExpression::div() {
+  if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      if (rv->get_value() == 0) code->insert_to_acc(0);
+      else code->insert_to_acc(lv->get_value() / rv->get_value());
+    }
+  }
+}
+
+void TBinaryExpression::mod() {
+  if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      if (rv->get_value() == 0) code->insert_to_acc(0);
+      else code->insert_to_acc((lv->get_value() % rv->get_value() + rv->get_value()) % rv->get_value());
+    }
+  }
+}
 /*
  ***************
  *    VALUE    *
