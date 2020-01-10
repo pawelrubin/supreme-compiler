@@ -273,8 +273,9 @@ void TArrayVariableIdentifier::load_addr_to_idr(int id /*=0*/) {
 }
 
 void TArrayVariableIdentifier::load_value_to_acc() {
-  this->load_addr_to_idr();
-  code->loadi(data->get_IDR());
+  code->insert_to_acc(this->array->get_norm_addr());
+  code->add(this->variable->get_addr());
+  code->loadi(0);
 }
 
 
