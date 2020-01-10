@@ -71,13 +71,15 @@ class TValue {
 
   public:
     integer get_value();
-    virtual void load_value() {}; // laods variable value to ACC
+    virtual void load_value() {}; // loads variable value to ACC
+    virtual void insert_to_VLR() {}; // loads variable value to VLR
 };
 
 class NumberValue : public TValue {
   public:
     NumberValue(integer value);
     void load_value() override;
+    void insert_to_VLR() override;
 };
 
 class IdentifierValue : public TValue {
@@ -87,6 +89,7 @@ class IdentifierValue : public TValue {
   public:
     IdentifierValue(TIdentifier *identifier);
     void load_value() override;
+    void insert_to_VLR() override;
     TIdentifier* get_identifier();
 };
 
@@ -99,11 +102,12 @@ class IdentifierValue : public TValue {
 
 class TIdentifier {
   protected:
-
+  // TODO: write costs of operations in comments
   public:
     virtual void load_addr_to_idr(int id=0) {}; // stores identifier address in IDR
     virtual integer get_addr() { return 0; }
-    // TODO: virtual method for loading value to ACC 
+    // TODO: virtual methods for loading value to ACC and registers
+    virtual void load_value_to_acc() {}
 };
 
 class TVariableIdentifier : public TIdentifier {
@@ -113,6 +117,7 @@ class TVariableIdentifier : public TIdentifier {
   public:
     TVariableIdentifier(ident var_name);
     void load_addr_to_idr(int id) override;
+    void load_value_to_acc() override;
     integer get_addr();
 };
 
@@ -125,6 +130,7 @@ class TArrayVariableIdentifier : public TIdentifier {
     using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident array_name, ident index_name);
     void load_addr_to_idr(int id=0) override; 
+    void load_value_to_acc() override;
 };
 
 class TArrayNumIdentifier : public TIdentifier {
@@ -134,7 +140,8 @@ class TArrayNumIdentifier : public TIdentifier {
 
   public:
     TArrayNumIdentifier(ident array_name, integer num_value);
-    void load_addr_to_idr(int id) override; 
+    void load_addr_to_idr(int id) override;
+    void load_value_to_acc() override;
     integer get_addr();
 };
 

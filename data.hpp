@@ -45,7 +45,7 @@ class Data {
 
   public:
     integer get_IDR(int idr=0);
-    integer get_OPR();
+    integer get_VLR();
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);
     void print_symbols();

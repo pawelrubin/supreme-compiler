@@ -60,7 +60,7 @@ integer Data::get_IDR(int id /*=0*/) {
   return this->memory_offset + 1 + id;
 }
 
-integer Data::get_OPR() {
+integer Data::get_VLR() {
   return this->memory_offset + 3;
 }
 
