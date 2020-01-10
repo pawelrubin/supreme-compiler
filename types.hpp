@@ -101,8 +101,9 @@ class TIdentifier {
   protected:
 
   public:
-    virtual void load_addr_to_idr() {}; // stores identifier address in IDR
+    virtual void load_addr_to_idr(int id=0) {}; // stores identifier address in IDR
     virtual integer get_addr() { return 0; }
+    // TODO: virtual method for loading value to ACC 
 };
 
 class TVariableIdentifier : public TIdentifier {
@@ -111,7 +112,7 @@ class TVariableIdentifier : public TIdentifier {
 
   public:
     TVariableIdentifier(ident var_name);
-    void load_addr_to_idr() override;
+    void load_addr_to_idr(int id) override;
     integer get_addr();
 };
 
@@ -123,7 +124,7 @@ class TArrayVariableIdentifier : public TIdentifier {
   public:
     using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident array_name, ident index_name);
-    void load_addr_to_idr() override; 
+    void load_addr_to_idr(int id=0) override; 
 };
 
 class TArrayNumIdentifier : public TIdentifier {
@@ -133,7 +134,7 @@ class TArrayNumIdentifier : public TIdentifier {
 
   public:
     TArrayNumIdentifier(ident array_name, integer num_value);
-    void load_addr_to_idr() override; 
+    void load_addr_to_idr(int id) override; 
     integer get_addr();
 };
 

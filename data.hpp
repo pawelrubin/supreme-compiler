@@ -44,7 +44,7 @@ class Data {
     void update_offset(integer value);
 
   public:
-    integer get_IDR();
+    integer get_IDR(int idr=0);
     integer get_OPR();
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);

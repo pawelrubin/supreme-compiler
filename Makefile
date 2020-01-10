@@ -1,5 +1,5 @@
 .PHONY = all clean cleanall
-FLAGS = -std=c++17 --pedantic -Wextra -Wall
+FLAGS = -std=c++17 --pedantic -Wextra -Wall -g
 
 all: cleanall compiler
 
