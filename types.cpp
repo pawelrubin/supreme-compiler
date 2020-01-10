@@ -57,13 +57,12 @@ void TBinaryExpression::plus() {
     } else {
       TIdentifier *rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
       if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-        avid->load_value_to_acc();            // ACC = rval
-        code->store(data->get_IDR());         // IDR = rval
+        avid->load_value_to_idr();            // IDR = rval
         code->insert_to_acc(lv->get_value()); // ACC = lval
         code->add(data->get_IDR());           // ACC = lval + rval
       } else {
         code->insert_to_acc(lv->get_value()); // ACC = lval
-        code->add(rid->get_addr());            // ACC = lval + rval
+        code->add(rid->get_addr());           // ACC = lval + rval
       }
     }
   } else {
@@ -74,7 +73,7 @@ void TBinaryExpression::plus() {
         avid->load_value_to_acc();            // ACC = lval
         code->add(data->get_VLR());           // ACC = lval + rval           
       } else {
-        code->insert_to_acc(rv->get_value()); // ACC = rval !! r + l  is faster tha l + r
+        code->insert_to_acc(rv->get_value()); // ACC = rval
         code->add(lid->get_addr());           // ACC = rval + lval
       }
     } else {
@@ -83,17 +82,16 @@ void TBinaryExpression::plus() {
 
       if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {      
-          ravid->load_value_to_acc();    // ACC = rval
-          code->store(data->get_IDR(1)); // IDR1= rval
-          lavid->load_value_to_acc();    // ACC = lval
-          code->add(data->get_IDR(1));   // ACC = lval + IDR = lval + rval
+          ravid->load_value_to_idr(); // IDR = rval
+          lavid->load_value_to_acc(); // ACC = lval
+          code->add(data->get_IDR()); // ACC = lval + IDR = lval + rval
         } else {
-          lavid->load_value_to_acc();    // ACC = lval
-          code->add(rid->get_addr());    // ACC = lval + rval
+          lavid->load_value_to_acc(); // ACC = lval
+          code->add(rid->get_addr()); // ACC = lval + rval
         }
       } else {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-          ravid->load_value_to_acc(); // ACC = rval !! its ok
+          ravid->load_value_to_acc(); // ACC = rval
           code->add(lid->get_addr()); // ACC = rval + lval
         } else { 
           code->load(lid->get_addr()); // ACC = lval 
@@ -111,28 +109,27 @@ void TBinaryExpression::minus() {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() - rv->get_value());
     }  else {
-      TIdentifier *id = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-      if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(id)) {
-        avid->load_value_to_acc();            // ACC = rval
-        code->store(data->get_IDR());         // IDR = rval
+      TIdentifier *rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
+      if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
+        avid->load_value_to_idr();            // IDR = rval
         code->insert_to_acc(lv->get_value()); // ACC = lval
         code->sub(data->get_IDR());           // ACC = lval - rval
       } else {
         code->insert_to_acc(lv->get_value()); // ACC = lval
-        code->sub(id->get_addr());            // ACC = lval - rval
+        code->sub(rid->get_addr());           // ACC = lval - rval
       }
     }
   } else {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
-      TIdentifier *id = static_cast<IdentifierValue*>(lvalue)->get_identifier();
-      if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(id)) {
+      TIdentifier *lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
+      if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         rv->insert_to_VLR();                  // VLR = rval
         avid->load_value_to_acc();            // ACC = lval
         code->sub(data->get_VLR());           // ACC = lval - rval           
       } else {
         code->insert_to_acc(rv->get_value()); // ACC = rval
         code->store(data->get_VLR());         // VLR = rval
-        id->load_value_to_acc();              // ACC = lval
+        lid->load_value_to_acc();             // ACC = lval
         code->sub(data->get_VLR());           // ACC = lval - rval
       }
     } else {
@@ -141,13 +138,12 @@ void TBinaryExpression::minus() {
 
       if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {      
-          ravid->load_value_to_acc();    // ACC = rval
-          code->store(data->get_IDR(1)); // IDR1= rval
+          ravid->load_value_to_idr();    // IDR = rval
           lavid->load_value_to_acc();    // ACC = lval
-          code->sub(data->get_IDR(1));   // ACC = lval + IDR = lval + rval
+          code->sub(data->get_IDR());    // ACC = lval - IDR = lval - rval
         } else {
           lavid->load_value_to_acc();    // ACC = lval
-          code->sub(rid->get_addr());    // ACC = lval + rval
+          code->sub(rid->get_addr());    // ACC = lval - rval
         }
       } else {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
@@ -260,6 +256,10 @@ void TVariableIdentifier::load_value_to_acc() {
   code->load(this->variable->get_addr());
 }
 
+void TVariableIdentifier::load_value_to_idr() {
+  this->load_value_to_acc();
+  code->store(data->get_IDR());
+}
 
 TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
@@ -278,6 +278,10 @@ void TArrayVariableIdentifier::load_value_to_acc() {
   code->loadi(0);
 }
 
+void TArrayVariableIdentifier::load_value_to_idr() {
+  this->load_value_to_acc();
+  code->store(data->get_IDR());
+}
 
 TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
@@ -297,3 +301,7 @@ void TArrayNumIdentifier::load_value_to_acc() {
   code->load(this->array->get_addr(this->num_value));
 }
 
+void TArrayNumIdentifier::load_value_to_idr() {
+  code->load(this->array->get_addr(this->num_value));
+  code->store(data->get_IDR());
+}

@@ -35,6 +35,11 @@ class Array : public Symbol {
     integer get_norm_addr();
 };
 
+/**
+ * 
+ * Virtual machine memory: [ACC, IDR, IDR1, VLR, Symbols..., ]
+ *
+ **/
 class Data {
   private:
     integer memory_offset = 1; // p(0) = ACC
