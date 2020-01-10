@@ -53,9 +53,9 @@ integer next_power_of_two_exponent(integer n) {
 
 void Code::assign(TIdentifier *identifier, TExpression *expr) {
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
-    id->load_addr_to_idr();         // IDR = id.addr
-    expr->load_expr();              // ACC = expr.value.value
-    this->storei(data->get_IDR());  // p(IDR) = ACC
+    id->load_addr_to_idr(1);         // IDR1 = id.addr ; IDR1 cuz load_expr() might be using IDR
+    expr->load_expr();               // ACC = expr.value.value
+    this->storei(data->get_IDR(1));  // p(IDR1) = ACC
   } else {
     expr->load_expr();                   // ACC = expr.value.value
     this->store(identifier->get_addr()); // p(id.addr) = ACC
