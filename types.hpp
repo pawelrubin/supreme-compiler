@@ -104,10 +104,11 @@ class TIdentifier {
   protected:
   // TODO: write costs of operations in comments
   public:
-    virtual void load_addr_to_register(Register) {}; // stores identifier address in IDR
-    virtual integer get_addr() { return 0; }
+    virtual void load_addr_to_register(Register) {} // stores identifier address in IDR
+    virtual void load_value_to_register(Register); // stores identifier value in IDR
     virtual void load_value_to_acc() {}
-    virtual void load_value_to_idr() {}
+    virtual integer get_addr() { return 0; }
+    virtual void negate(bool) {}
 };
 
 class TVariableIdentifier : public TIdentifier {
@@ -119,8 +120,8 @@ class TVariableIdentifier : public TIdentifier {
     TVariableIdentifier(Variable* pseudo);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
-    void load_value_to_idr() override;
     integer get_addr();
+    void negate(bool) override;
 };
 
 class TArrayVariableIdentifier : public TIdentifier {
@@ -131,11 +132,9 @@ class TArrayVariableIdentifier : public TIdentifier {
   public:
     using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident array_name, ident index_name);
-    void load_addr_to_register(Register) override; 
+    void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
-    void load_value_to_idr() override;
-    
-    void load_value_to_register(Register);
+    void negate(bool) override;
 };
 
 class TArrayNumIdentifier : public TIdentifier {
@@ -147,7 +146,7 @@ class TArrayNumIdentifier : public TIdentifier {
     TArrayNumIdentifier(ident array_name, integer num_value);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
-    void load_value_to_idr() override;
     integer get_addr();
+    void negate(bool) override;
 };
 

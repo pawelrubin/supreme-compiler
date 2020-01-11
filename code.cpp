@@ -105,6 +105,30 @@ void Code::rshift() {
   shift(2);
 }
 
+void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
+  reset_acc(); 
+  store(data->get_register(Register::D));
+  lid->load_value_to_acc();
+  integer j = instruction_count;
+  jpos(-j - 1);
+    lid->negate(true);
+    reset_acc();
+    inc();
+    store(data->get_register(Register::D));
+  insert_jump_address(j, instruction_count);
+
+  rid->load_value_to_acc();
+  j = instruction_count;
+  jpos(-j - 1);
+    rid->negate(true);
+    load(data->get_register(Register::D));
+    jzero(3);
+      dec();
+      jump(instruction_count + 2);
+    inc();
+    store(data->get_register(Register::D));
+  insert_jump_address(j, instruction_count);
+}
 
 /*
  ***********************
@@ -205,7 +229,7 @@ void Code::jump(integer j) {
 }
 
 void Code::jpos(integer j) {
-  this->atomic("JPOS", j);
+  this->atomic("JPOS", instruction_count + j);
 }
 
 // k += j

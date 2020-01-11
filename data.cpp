@@ -42,7 +42,7 @@ void Data::declare_variable(ident id) {
 void Data::declare_array(ident id, integer start, integer end) {
   if (this->is_declared(id)) throw std::string(id + " already declared.");
   this->symbols[id] = new Array(this->memory_offset, start, end);
-  this->update_offset(end - start + 1);
+  this->update_offset(abs(end - start) + 1);
 }
 
 void Data::print_symbols() {

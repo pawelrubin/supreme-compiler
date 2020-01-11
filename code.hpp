@@ -40,6 +40,7 @@ class Code {
     void parity_test(TIdentifier*);
     void rshift();
     void lshift();
+    void set_sign_bit(TIdentifier*, TIdentifier*);
 
     // atomic operations
     void atomic(std::string);
