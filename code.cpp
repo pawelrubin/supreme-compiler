@@ -51,6 +51,42 @@ integer next_power_of_two_exponent(integer n) {
  *************************
 */
 
+void Code::parity_test(TValue* value) {
+  if (NumberValue *num = dynamic_cast<NumberValue*>(value)) {
+    insert_to_acc(num->get_value() % 2);
+  } else {
+    TIdentifier *id = static_cast<IdentifierValue*>(value)->get_identifier();
+    if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(id)) {
+      avid->load_addr_to_idr();
+      avid->load_value_to_acc();
+      rshift();
+      lshift();
+      sub(data->get_IDR());
+    }
+    id->load_value_to_acc();
+    rshift();
+    lshift();
+    sub(id->get_addr());
+  }
+}
+
+void Code::lshift() {
+  set_lshift();
+  shift(1);
+}
+
+void Code::rshift() {
+  set_rshift();
+  shift(2);
+}
+
+
+/*
+ ***********************
+ * language operations *
+ ***********************
+*/
+
 void Code::assign(TIdentifier *identifier, TExpression *expr) {
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
     id->load_addr_to_idr(1);         // IDR1 = id.addr ; IDR1 cuz load_expr() might be using IDR
@@ -69,7 +105,7 @@ void Code::write(TValue *value) {
 
 void Code::read(TIdentifier *identifier) {
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
-    id->load_addr_to_idr(); // IDR = id.addr
+    id->load_addr_to_idr();         // IDR = id.addr
     this->get();                    // ACC = input
     this->storei(data->get_IDR());  // p(IDR) = ACC
   } else {
@@ -180,4 +216,21 @@ void Code::insert_to_acc(integer value) { // TODO: Optimize constants generation
 
 void Code::reset_acc() {
   this->sub(0);
+}
+
+
+void Code::set_lshift() {
+  if (!data->is_lshift_set()) {
+    reset_acc();
+    inc();
+    store(1);
+  }
+}
+
+void Code::set_rshift() {
+  if (!data->is_rshift_set()) {
+    reset_acc();
+    dec();
+    store(2);
+  }
 }

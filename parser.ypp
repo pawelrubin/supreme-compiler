@@ -69,8 +69,8 @@ declarations:
 ;
 
 commands:
-  commands command                                            {}
-| command                                                     {}
+  commands command                                            { }
+| command                                                     { }
 ;
 
 command:

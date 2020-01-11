@@ -37,14 +37,21 @@ class Array : public Symbol {
 
 /**
  * 
- * Virtual machine memory: [ACC, IDR, IDR1, VLR, Symbols..., ]
+ * Virtual machine memory: [ACC, RSHIFT, LSHIFT, Symbols..., IDR, IDR1, VLR]
  *
  **/
 class Data {
+    
+  // TODO: keep variables values if possible, then use them while compiling expressions etc
+  // TODO: keep values held in ACC and registers to optimize constants generation
+
   private:
     integer memory_offset = 1; // p(0) = ACC
     std::unordered_map<ident, Symbol*> symbols;
-    
+
+    bool lshift_set;
+    bool rshift_set;
+
     bool is_declared(ident id);
     void update_offset(integer value);
 
@@ -55,5 +62,9 @@ class Data {
     void declare_array(ident id, integer start, integer end);
     void print_symbols();
     Symbol* get_symbol(ident id);
+
+    bool is_lshift_set(); // is p(1) set to 1
+    bool is_rshift_set(); // is p(2) set to -1
 };
+
 

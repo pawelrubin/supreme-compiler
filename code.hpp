@@ -7,10 +7,13 @@
 #include <string>
 
 class Code {
+
+  // IDEA methods should return number of instructions performed
+
   private:
     codeList code;
     long long instruction_count = 0;
-    void update_offset(long long value);
+    void update_offset(long long);
 
   public:
     // utilities
@@ -18,39 +21,46 @@ class Code {
     void end_code();
     codeList get_code();
     void print_code();
-    void fprint_code(std::string filename);
+    void fprint_code(std::string);
+
+    // language operations
+    void assign(TIdentifier*, TExpression*);
+    void read(TIdentifier*);
+    void write(TValue*);
 
     // high order operations
-    void assign(TIdentifier *identifier, TExpression *expr);
-    void read(TIdentifier *identifier);
-    void write(TValue *value);
+    void parity_test(TValue*);
+    void rshift();
+    void lshift();
 
     // atomic operations
-    void atomic(std::string instr);
-    void atomic(std::string instr, integer i);
+    void atomic(std::string);
+    void atomic(std::string, integer);
   
     void get();
     void put();
 
-    void load(integer i);
-    void store(integer i);
-    void loadi(integer i);
-    void storei(integer i);
+    void load(integer);
+    void store(integer);
+    void loadi(integer);
+    void storei(integer);
 
-    void add(integer i);
-    void sub(integer i);
-    void shift(integer i);    
+    void add(integer);
+    void sub(integer);
+    void shift(integer);    
     void inc();
     void dec();
 
-    void jump(integer j);
-    void jpos(integer j);
-    void jzero(integer j);
-    void jneg(integer j);
+    void jump(integer);
+    void jpos(integer);
+    void jzero(integer);
+    void jneg(integer);
 
     void halt();
 
     // memory managment
-    void insert_to_acc(integer value);
+    void insert_to_acc(integer);
     void reset_acc();
+    void set_lshift();
+    void set_rshift();
 };

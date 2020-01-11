@@ -64,6 +64,14 @@ integer Data::get_VLR() {
   return this->memory_offset + 3;
 }
 
+bool Data::is_lshift_set() {
+  return lshift_set;
+}
+
+bool Data::is_rshift_set() {
+  return rshift_set;
+}
+
 /*
  **********************
  *        ARRAY       * 

@@ -106,7 +106,6 @@ class TIdentifier {
   public:
     virtual void load_addr_to_idr(int id=0) {}; // stores identifier address in IDR
     virtual integer get_addr() { return 0; }
-    // TODO: virtual methods for loading value to ACC and registers
     virtual void load_value_to_acc() {}
     virtual void load_value_to_idr() {}
 };

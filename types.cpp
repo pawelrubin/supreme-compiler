@@ -103,7 +103,6 @@ void TBinaryExpression::plus() {
 }
 
 
-/* TODO: Substraction */
 void TBinaryExpression::minus() {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
