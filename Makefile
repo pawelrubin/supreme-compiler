@@ -1,7 +1,7 @@
 .PHONY = all clean cleanall
-FLAGS = -O3 -std=c++17 --pedantic -Wextra -Wall -g
+FLAGS = -std=c++17 --pedantic -Wextra -Wall
 
-all: cleanall compiler
+all: compiler
 
 compiler: parser lexer data code types
 	g++ $(FLAGS) -o compiler parser.o lexer.o data.o code.o types.o

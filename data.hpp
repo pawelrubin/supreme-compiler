@@ -6,6 +6,16 @@
 #include <string>
 
 
+enum class Register {
+  IDR,
+  IDR1,
+  VLR,
+  A,
+  B,
+  C,
+  D
+};
+
 class Symbol {
   protected:
     integer addr;
@@ -37,7 +47,7 @@ class Array : public Symbol {
 
 /**
  * 
- * Virtual machine memory: [ACC, RSHIFT, LSHIFT, Symbols..., IDR, IDR1, VLR]
+ * Virtual machine memory: [ACC, RSHIFT, LSHIFT, Symbols..., IDR, IDR1, VLR, A, B]
  *
  **/
 class Data {
@@ -46,7 +56,7 @@ class Data {
   // TODO: keep values held in ACC and registers to optimize constants generation
 
   private:
-    integer memory_offset = 1; // p(0) = ACC
+    integer memory_offset = 3; // ACC
     std::unordered_map<ident, Symbol*> symbols;
 
     bool lshift_set;
@@ -56,8 +66,7 @@ class Data {
     void update_offset(integer value);
 
   public:
-    integer get_IDR(int idr=0);
-    integer get_VLR();
+    integer get_register(Register);
     void declare_variable(ident id);
     void declare_array(ident id, integer start, integer end);
     void print_symbols();
@@ -66,5 +75,3 @@ class Data {
     bool is_lshift_set(); // is p(1) set to 1
     bool is_rshift_set(); // is p(2) set to -1
 };
-
-

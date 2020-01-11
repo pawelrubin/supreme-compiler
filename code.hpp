@@ -9,13 +9,21 @@
 class Code {
 
   // IDEA methods should return number of instructions performed
+  // IDEA indent output code
 
   private:
     codeList code;
-    long long instruction_count = 0;
+    integer instruction_count = 0;
     void update_offset(long long);
 
   public:
+
+    Code();
+
+    integer get_instruction_count();
+
+    void insert_jump_address(integer, integer);
+
     // utilities
     void start_code();
     void end_code();
@@ -29,7 +37,7 @@ class Code {
     void write(TValue*);
 
     // high order operations
-    void parity_test(TValue*);
+    void parity_test(TIdentifier*);
     void rshift();
     void lshift();
 
