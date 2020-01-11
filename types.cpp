@@ -208,7 +208,7 @@ void TBinaryExpression::times() {
       code->add(rid->get_addr());
       code->store(data->get_register(Register::A));
     rid->load_value_to_acc();
-    code->add(rid->get_addr());
+    code->lshift();
     code->store(rid->get_addr());
     lid->load_value_to_acc();
     code->rshift();
@@ -217,7 +217,7 @@ void TBinaryExpression::times() {
   code->insert_jump_address(j, code->get_instruction_count());
 
   code->load(data->get_register(Register::D));
-  code->jzero(5);
+  code->jzero(5); // negate result if sign bit was set 
     code->load(data->get_register(Register::A));
     code->sub(data->get_register(Register::A));
     code->sub(data->get_register(Register::A));
@@ -227,12 +227,100 @@ void TBinaryExpression::times() {
 
 /* TODO: Division */
 void TBinaryExpression::div() {
+  TIdentifier *lid;
+  TIdentifier *rid;
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->insert_to_acc(0);
-      else code->insert_to_acc(lv->get_value() / rv->get_value());
+      else code->insert_to_acc(lv->get_value() * rv->get_value());
+      return;
+    }
+    lv->insert_to_VLR();
+    lid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
+    
+    rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
+    if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
+      ravid->load_value_to_register(Register::C);
+      rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
+    }
+  } else {
+    lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
+    if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
+      lavid->load_value_to_register(Register::B);
+      lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
+    }
+    
+    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+      rv->insert_to_VLR();
+      rid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
+    } else {
+      rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
+      if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
+        ravid->load_value_to_register(Register::C);
+        rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
+      }
     }
   }
+
+// if (divisor != 0) {
+  rid->load_value_to_acc();
+  integer j = code->get_instruction_count();
+  code->jzero(-j - 1);
+    code->reset_acc();
+    code->store(data->get_register(Register::A));   // result = 0
+    code->inc();
+    code->store(data->get_register(Register::E));   // multiple = 1
+  // while (scaled_divisor < dividend) {
+    lid->load_value_to_acc(); 
+    code->store(data->get_register(Register::F));   // remain = dividend
+    code->sub(rid->get_addr());
+    integer k = code->get_instruction_count();
+    code->jneg(-k - 1);
+    code->jzero(-k - 2);                            // while scaled_divisor < dividend
+      rid->load_value_to_acc();
+      code->lshift();
+      code->store(rid->get_addr());                 // scaled_divisor *= 2
+      
+      code->load(data->get_register(Register::E));
+      code->lshift();
+      code->store(data->get_register(Register::E)); // multiple *= 2
+
+      lid->load_value_to_acc();
+      code->sub(rid->get_addr());
+      code->jump(k);
+    code->insert_jump_address(k, code->get_instruction_count());
+    code->insert_jump_address(k + 1, code->get_instruction_count());
+  // }
+    k = code->get_instruction_count();
+  // do {
+    // if (remain >= scaled_divisor) {
+    code->load(data->get_register(Register::F));    // load remain 
+    code->sub(rid->get_addr());                     // sub scaled_divisor
+    code->jneg(5);                                  
+      code->store(data->get_register(Register::F)); // remain -= scaled_divisor
+      code->load(data->get_register(Register::A));  
+      code->add(data->get_register(Register::E));   
+      code->store(data->get_register(Register::A)); // result += multiple
+    // }
+
+    code->load(rid->get_addr());
+    code->rshift();
+    code->store(rid->get_addr());                   // scaled_divisor >>= 1
+
+    code->load(data->get_register(Register::E));
+    code->rshift();
+    code->store(data->get_register(Register::E));   // multiple >>= 1
+
+    code->jzero(2);
+    code->jump(k);
+  // } while (multiple != 0)
+    code->load(data->get_register(Register::A));
+    
+  code->jump(code->get_instruction_count() + 2);
+  code->insert_jump_address(j, code->get_instruction_count());
+// } else {
+  code->reset_acc();
+// }
 }
 
 /* TODO: Modulo */

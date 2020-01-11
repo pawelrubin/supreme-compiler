@@ -238,7 +238,7 @@ void Code::jzero(integer j) {
 }
 
 void Code::jneg(integer j) {
-  this->atomic("JNEG", j);
+  this->atomic("JNEG", instruction_count + j);
 }
 
 void Code::halt() {
