@@ -266,6 +266,9 @@ void TBinaryExpression::div() {
   rid->load_value_to_acc();
   integer j = code->get_instruction_count();
   code->jzero(-j - 1);
+    
+    code->set_sign_bit(lid, rid); // stores sign bit in Register::D
+
     code->reset_acc();
     code->store(data->get_register(Register::A));   // result = 0
     code->inc();
@@ -314,8 +317,15 @@ void TBinaryExpression::div() {
     code->jzero(2);
     code->jump(k);
   // } while (multiple != 0)
-    code->load(data->get_register(Register::A));
     
+    code->load(data->get_register(Register::D));
+    code->jzero(5); // negate result if sign bit was set 
+      code->load(data->get_register(Register::A));
+      code->sub(data->get_register(Register::A));
+      code->sub(data->get_register(Register::A));
+      code->store(data->get_register(Register::A));
+    code->load(data->get_register(Register::A));
+
   code->jump(code->get_instruction_count() + 2);
   code->insert_jump_address(j, code->get_instruction_count());
 // } else {
