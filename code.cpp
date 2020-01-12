@@ -15,7 +15,6 @@ integer Code::get_instruction_count() {
 } 
 
 void Code::insert_jump_address(integer k, integer j) {
-  std::cerr << " insert jump address " << k << " " << j << std::endl;
   std::string& jump = code[k];
   std::size_t pos = jump.find("-1");
   if (pos != std::string::npos)
