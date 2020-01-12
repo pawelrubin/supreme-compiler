@@ -194,7 +194,6 @@ void TBinaryExpression::times() {
   code->load(data->get_register(Register::A));
 }
 
-/* FIXME */
 void TBinaryExpression::div() {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
@@ -267,20 +266,18 @@ void TBinaryExpression::div() {
     
     code->load(data->get_register(Register::D));
     integer l = code->get_instruction_count();
-    code->jzero(-l - 1); // negate result if sign bit was set 
+    code->jzero(-l - 1); // if sign bit was set 
       code->load(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
-      code->store(data->get_register(Register::A));
+      code->store(data->get_register(Register::A));                   // negate result
       lvalue->load_value();
-      code->jneg(2);
-        code->jump(code->get_instruction_count() + 7);
-      code->load(data->get_register(Register::F));
-      code->jzero(2);
-        code->jump(code->get_instruction_count() + 4);
-      code->load(data->get_register(Register::A));
-      code->dec();
-      code->store(data->get_register(Register::A));
+      code->jneg(2); code->jump(code->get_instruction_count() + 7);   // if divident < 0
+        code->load(data->get_register(Register::F));
+        code->jpos(2); code->jump(code->get_instruction_count() + 4); // if remain > 0
+          code->load(data->get_register(Register::A));
+          code->dec();                                                // result--
+          code->store(data->get_register(Register::A));
 
     code->insert_jump_address(l, code->get_instruction_count());    
     code->load(data->get_register(Register::A));

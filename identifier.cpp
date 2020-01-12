@@ -60,9 +60,11 @@ void TArrayVariableIdentifier::load_value_to_acc() {
 
 void TArrayVariableIdentifier::negate(bool is_loaded) {
   if (!is_loaded) {
-    this->load_value_to_acc();
+    code->insert_to_acc(this->array->get_norm_addr());
+    code->add(this->variable->get_addr());
+    code->store(data->get_register(Register::IDR));
+    code->loadi(0);
   }
-  this->load_addr_to_register(Register::IDR);
   code->sub(data->get_register(Register::IDR));
   code->sub(data->get_register(Register::IDR));
   code->store(data->get_register(Register::IDR));
