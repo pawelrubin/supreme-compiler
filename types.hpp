@@ -106,6 +106,7 @@ class TIfElseCommand : public TIfCommand {
 
   public:
     TIfElseCommand(TCondition*, TCommandBlock*, TCommandBlock*);
+    void load_command() override;
 };
 
 class TWriteCommand : public TCommand {

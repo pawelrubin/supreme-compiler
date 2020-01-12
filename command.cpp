@@ -4,7 +4,6 @@
 TIfCommand::TIfCommand(TCondition* condition, TCommandBlock* if_block) {
   this->condition = condition;
   this->if_block = if_block;
-  // this->load_command();
 }
 
 void TIfCommand::load_command() {
@@ -12,15 +11,25 @@ void TIfCommand::load_command() {
   for (const auto &command : *this->if_block) {
     command->load_command();
   }
-  // TCommandBlock::iterator iter,end;
-  // for ( iter = if_block->begin(), end = if_block->end(); iter != end; ++iter) {
-  //   // (*iter)->load_command();
-  // }
   code->insert_jump_address(this->condition->get_address(), code->get_instruction_count());
 }
 
 TIfElseCommand::TIfElseCommand(TCondition* condition, TCommandBlock* if_block, TCommandBlock* else_block) : TIfCommand(condition, if_block) {
   this->else_block = else_block;
+}
+
+void TIfElseCommand::load_command() {
+  this->condition->load_condition();
+  for (const auto &command : *this->if_block) {
+    command->load_command();
+  }
+  integer j = code->get_instruction_count();
+  code->jump();
+  code->insert_jump_address(this->condition->get_address(), code->get_instruction_count());
+  for (const auto &command : *this->else_block) {
+    command->load_command();
+  }
+  code->insert_jump_address(j, code->get_instruction_count());
 }
 
 
