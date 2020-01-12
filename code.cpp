@@ -6,11 +6,6 @@
 #include <fstream>
 #include <algorithm>
 
-Code::Code() {
-  start_code();
-}
-
-
 integer Code::get_instruction_count() {
   return instruction_count;
 } 
@@ -94,7 +89,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
   store(data->get_register(Register::D));
   lid->load_value_to_acc();
   integer j = instruction_count;
-  jpos(-j - 1);
+  jpos();
     lid->negate(true);
     reset_acc();
     inc();
@@ -103,7 +98,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
 
   rid->load_value_to_acc();
   j = instruction_count;
-  jpos(-j - 1);
+  jpos();
     rid->negate(true);
     load(data->get_register(Register::D));
     jzero(3);
@@ -213,17 +208,32 @@ void Code::jump(integer j) {
   this->atomic("JUMP", j);
 }
 
+void Code::jump() {
+  this->atomic("JUMP", -1);
+}
+
 void Code::jpos(integer j) {
   this->atomic("JPOS", instruction_count + j);
 }
 
-// k += j
+void Code::jpos() {
+  this->atomic("JPOS", -1);
+}
+
 void Code::jzero(integer j) {
   this->atomic("JZERO", instruction_count + j);
 }
 
+void Code::jzero() {
+  this->atomic("JZERO", -1);
+}
+
 void Code::jneg(integer j) {
   this->atomic("JNEG", instruction_count + j);
+}
+
+void Code::jneg() {
+  this->atomic("JNEG", -1);
 }
 
 void Code::halt() {
@@ -254,7 +264,7 @@ void Code::insert_to_acc(integer value) {
         this->inc();
       }
     } else {
-      for (int i = 0; i < value; i++) {
+      for (int i = value; i < 0; i++) {
         this->dec();
       }
     }

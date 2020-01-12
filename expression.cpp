@@ -296,7 +296,6 @@ void TBinaryExpression::div() {
 // }
 }
 
-/* TODO: mathematical modulo for negative numbers */
 void TBinaryExpression::mod() {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
@@ -378,13 +377,13 @@ void TBinaryExpression::mod() {
       
       lvalue->load_value();
       integer l = code->get_instruction_count();
-      code->jneg(2); code->jump(-1); // a < 0
+      code->jneg(2); code->jump(); // a < 0
         rvalue->load_value();
         code->sub(data->get_register(Register::F));
         code->store(data->get_register(Register::F));
       code->insert_jump_address(l + 1 , 1 + code->get_instruction_count());
       integer m = code->get_instruction_count();
-      code->jump(-1);
+      code->jump();
     code->insert_jump_address(k, code->get_instruction_count());
   // } else { 
       lvalue->load_value();

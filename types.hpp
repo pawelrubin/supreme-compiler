@@ -8,7 +8,11 @@ class Code;
 extern Code *code;
 extern Data *data;
 
-class TExpresion;
+class TProgram;
+// class TDeclaration;
+class TCommand;
+class TCondition;
+class TExpression;
 class TValue;
 class TIdentifier;
 
@@ -19,6 +23,143 @@ enum class BinaryOperator {
   TIMES,
   DIV,
   MOD
+};
+
+enum class ConditionOperator {
+  EQ,
+  NEQ,
+  LE,
+  GE,
+  LEQ,
+  GEQ
+};
+
+typedef std::vector<TCommand*> TCommandBlock;
+// typedef std::vector<TDeclaration*> TDeclarationBlock;
+
+class TProgram {
+  protected:
+    TCommandBlock* commands;
+
+  public:
+    TProgram(TCommandBlock*);
+    virtual void load_program();
+};
+
+// class TProgramWithDeclarations : public TProgram {
+//   private:
+//     TDeclarationBlock* declarations;
+
+//   public:
+//     TProgramWithDeclarations(TDeclarationBlock*, TCommandBlock*);
+//     void load_program() override;
+// };
+
+// class TDeclaration {
+//   protected:
+//     ident pidentifier;
+//   public:
+//     TDeclaration(ident);
+//     virtual void load_declaration();
+// };
+
+// class TArrayDeclaration : public TDeclaration {
+//   private:
+//     integer start;
+//     integer end;
+
+//   public:
+//     TArrayDeclaration(ident, integer, integer);
+//     void load_declaration() override;
+// };
+
+/*
+ *****************
+ *    COMMAND    *
+ *****************
+ */
+
+
+class TCommand {
+  protected:
+    integer length;
+  public:
+    TCommand() = default;
+    virtual void load_command() {}
+};
+
+class TIfCommand : public TCommand {
+  protected:
+    TCondition* condition;
+    TCommandBlock* if_block;
+    
+    integer jump_address;
+
+  public:
+    TIfCommand(TCondition*, TCommandBlock*);
+    void load_command() override;
+};
+
+class TIfElseCommand : public TIfCommand {
+  private:
+    TCommandBlock* else_block;
+
+  public:
+    TIfElseCommand(TCondition*, TCommandBlock*, TCommandBlock*);
+};
+
+class TWriteCommand : public TCommand {
+  private:
+    TValue* value;
+
+  public:
+    TWriteCommand(TValue*);
+    void load_command() override;
+};
+
+class TReadCommand : public TCommand {
+  private:
+    TIdentifier* identifier;
+
+  public:
+    TReadCommand(TIdentifier*);
+    void load_command() override;
+};
+
+class TAssignCommand : public TCommand {
+  private:
+    TIdentifier* identifier;
+    TExpression* expression;
+
+  public:
+    TAssignCommand(TIdentifier*, TExpression*);
+    void load_command() override;
+};
+
+/*
+ *******************
+ *    CONDITION    *
+ *******************
+ */
+
+class TCondition {
+  private:
+    TValue *lvalue;
+    TValue *rvalue;
+    ConditionOperator op;
+    integer address;
+
+    void eq();
+    void neq();
+    void le();
+    void ge();
+    void leq();
+    void geq();
+
+  public:
+    integer get_address();
+    void load_condition();
+    TCondition(TValue*, TValue*, ConditionOperator);
 };
 
 /*

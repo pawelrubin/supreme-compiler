@@ -4,9 +4,12 @@ FLAGS = -std=c++17 --pedantic -Wextra -Wall
 all: compiler
 
 compiler: parser lexer data code types
-	g++ $(FLAGS) -o compiler parser.o lexer.o data.o code.o expression.o value.o identifier.o
+	g++ $(FLAGS) -o compiler parser.o lexer.o data.o code.o program.o command.o condition.o expression.o value.o identifier.o
 
-types: expression.cpp value.cpp identifier.cpp
+types: program.cpp command.cpp condition.cpp expression.cpp value.cpp identifier.cpp
+	g++ $(FLAGS) -c program.cpp -o program.o
+	g++ $(FLAGS) -c command.cpp -o command.o
+	g++ $(FLAGS) -c condition.cpp -o condition.o
 	g++ $(FLAGS) -c expression.cpp -o expression.o
 	g++ $(FLAGS) -c value.cpp -o value.o
 	g++ $(FLAGS) -c identifier.cpp -o identifier.o
@@ -34,3 +37,6 @@ clean:
 
 cleanall: clean
 	rm -f compiler
+
+test:
+	./compiler jftt2019-testy/00-div-mod.imp /tmp/test && echo "33\n7" | ./vm /tmp/test

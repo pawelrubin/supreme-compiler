@@ -18,8 +18,6 @@ class Code {
 
   public:
 
-    Code();
-
     integer get_instruction_count();
 
     void insert_jump_address(integer, integer);
@@ -61,9 +59,13 @@ class Code {
     void dec();
 
     void jump(integer);
+    void jump();
     void jpos(integer);
+    void jpos();
     void jzero(integer);
+    void jzero();
     void jneg(integer);
+    void jneg();
 
     void halt();
 

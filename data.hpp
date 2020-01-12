@@ -57,6 +57,7 @@ class Data {
     
   // TODO: keep variables values if possible, then use them while compiling expressions etc
   // TODO: keep values held in ACC and registers to optimize constants generation
+  // TODO: remember what is currently loaded
 
   private:
     integer memory_offset = 3; // ACC
