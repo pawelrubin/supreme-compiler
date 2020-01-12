@@ -18,6 +18,11 @@ void NumberValue::insert_to_VLR() {
   code->store(data->get_register(Register::VLR));
 }
 
+void NumberValue::store_in_register(Register reg) {
+  code->insert_to_acc(this->value);
+  code->store(data->get_register(reg));
+}
+
 IdentifierValue::IdentifierValue(TIdentifier *identifier) {
   this->identifier = identifier;
 }
@@ -33,6 +38,12 @@ void IdentifierValue::load_value() {
 
 void IdentifierValue::insert_to_VLR() {
   // this->identifier->
+}
+
+void IdentifierValue::store_in_register(Register reg) {
+  // code->insert_to_acc(this->value);
+  // code->store(data->get_register(reg));
+  this->identifier->load_value_to_register(reg);
 }
 
 TIdentifier* IdentifierValue::get_identifier() {

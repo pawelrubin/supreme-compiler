@@ -1,6 +1,8 @@
 #include "types.hpp"
 #include "code.hpp"
 
+#include <math.h>
+
 TValueExpression::TValueExpression(TValue *value) {
   this->value = value;
 }
@@ -42,7 +44,7 @@ void TBinaryExpression::load_expr() {
   }
 }
 
-void TBinaryExpression::plus() {
+void TBinaryExpression::plus() { // TODO refactor
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() + rv->get_value());
@@ -94,8 +96,7 @@ void TBinaryExpression::plus() {
   }
 }
 
-
-void TBinaryExpression::minus() {
+void TBinaryExpression::minus() { // TODO refactor
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() - rv->get_value());
@@ -151,41 +152,17 @@ void TBinaryExpression::minus() {
   }
 }
 
-/* TODO: Multiplication */
 void TBinaryExpression::times() {
-  TIdentifier *lid;
-  TIdentifier *rid;
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() * rv->get_value());
       return;
     }
-    lv->insert_to_VLR();
-    lid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    
-    rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-    if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-      ravid->load_value_to_register(Register::C);
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-    }
-  } else {
-    lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
-    if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
-      lavid->load_value_to_register(Register::B);
-      lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
-    }
-    
-    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
-      rv->insert_to_VLR();
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    } else {
-      rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-      if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-        ravid->load_value_to_register(Register::C);
-        rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-      }
-    }
   }
+  lvalue->store_in_register(Register::B);
+  rvalue->store_in_register(Register::C);
+  TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
+  TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
   code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
@@ -217,42 +194,20 @@ void TBinaryExpression::times() {
   code->load(data->get_register(Register::A));
 }
 
-/* TODO: Division */
+/* FIXME */
 void TBinaryExpression::div() {
-  TIdentifier *lid;
-  TIdentifier *rid;
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
-      if (rv->get_value() == 0) code->insert_to_acc(0);
-      else code->insert_to_acc(lv->get_value() * rv->get_value());
+      if (rv->get_value() == 0) code->reset_acc();
+      else code->insert_to_acc(floor((double) lv->get_value() / (double) rv->get_value()));
       return;
     }
-    lv->insert_to_VLR();
-    lid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    
-    rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-    if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-      ravid->load_value_to_register(Register::C);
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-    }
-  } else {
-    lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
-    if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
-      lavid->load_value_to_register(Register::B);
-      lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
-    }
-    
-    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
-      rv->insert_to_VLR();
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    } else {
-      rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-      if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-        ravid->load_value_to_register(Register::C);
-        rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-      }
-    }
   }
+  
+  lvalue->store_in_register(Register::B);
+  rvalue->store_in_register(Register::C);
+  TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
+  TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
 // if (divisor != 0) {
   rid->load_value_to_acc();
@@ -311,12 +266,26 @@ void TBinaryExpression::div() {
   // } while (multiple != 0)
     
     code->load(data->get_register(Register::D));
-    code->jzero(5); // negate result if sign bit was set 
+    integer l = code->get_instruction_count();
+    code->jzero(-l - 1); // negate result if sign bit was set 
       code->load(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
       code->store(data->get_register(Register::A));
+      lvalue->load_value();
+      code->jneg(2);
+        code->jump(code->get_instruction_count() + 7);
+      code->load(data->get_register(Register::F));
+      code->jzero(2);
+        code->jump(code->get_instruction_count() + 4);
+      code->load(data->get_register(Register::A));
+      code->dec();
+      code->store(data->get_register(Register::A));
+
+    code->insert_jump_address(l, code->get_instruction_count());    
     code->load(data->get_register(Register::A));
+
+
 
   code->jump(code->get_instruction_count() + 2);
   code->insert_jump_address(j, code->get_instruction_count());
@@ -327,40 +296,18 @@ void TBinaryExpression::div() {
 
 /* TODO: Modulo */
 void TBinaryExpression::mod() {
-  TIdentifier *lid;
-  TIdentifier *rid;
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->insert_to_acc(0);
-      else code->insert_to_acc(lv->get_value() % rv->get_value());
+      else code->insert_to_acc(((lv->get_value() % rv->get_value()) + rv->get_value()) % rv->get_value());
       return;
     }
-    lv->insert_to_VLR();
-    lid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    
-    rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-    if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-      ravid->load_value_to_register(Register::C);
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-    }
-  } else {
-    lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
-    if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
-      lavid->load_value_to_register(Register::B);
-      lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
-    }
-    
-    if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
-      rv->insert_to_VLR();
-      rid = new TVariableIdentifier(new Variable(data->get_register(Register::VLR)));
-    } else {
-      rid = static_cast<IdentifierValue*>(rvalue)->get_identifier();
-      if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-        ravid->load_value_to_register(Register::C);
-        rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
-      }
-    }
   }
+
+  lvalue->store_in_register(Register::B);
+  rvalue->store_in_register(Register::C);
+  TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
+  TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
 // if (divisor != 0) {
   rid->load_value_to_acc();

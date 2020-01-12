@@ -73,6 +73,7 @@ class TValue {
     integer get_value();
     virtual void load_value() {}; // loads variable value to ACC
     virtual void insert_to_VLR() {}; // loads variable value to VLR
+    virtual void store_in_register(Register) {};
 };
 
 class NumberValue : public TValue {
@@ -80,6 +81,7 @@ class NumberValue : public TValue {
     NumberValue(integer);
     void load_value() override;
     void insert_to_VLR() override;
+    void store_in_register(Register) override;
 };
 
 class IdentifierValue : public TValue {
@@ -90,6 +92,7 @@ class IdentifierValue : public TValue {
     IdentifierValue(TIdentifier*);
     void load_value() override;
     void insert_to_VLR() override;
+    void store_in_register(Register) override;
     TIdentifier* get_identifier();
 };
 
