@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <fstream>
+#include <algorithm>
 
 Code::Code() {
   start_code();
@@ -235,16 +236,29 @@ void Code::halt() {
  *********************
 */
 
-void Code::insert_to_acc(integer value) { // TODO: Optimize constants generation.
+void Code::insert_to_acc(integer value) {
   this->reset_acc();
-  if (value > 0) {
-    for (int i = 0; i < value; i++) {
-      this->inc();
+  if (abs(value) > 10) {
+    std::string bin_value;
+    unsigned long long x = abs(value); 
+    for(; x > 0; x /= 2) bin_value += char(x%2 + '0');
+    std::reverse(bin_value.begin(), bin_value.end());
+    for (std::string::size_type i = 0; i < bin_value.size() - 1; ++i) {
+      if (bin_value[i] == '1') (value > 0) ? inc() : dec();
+      lshift();
     }
+    if (bin_value[bin_value.size() - 1] == '1') value > 0 ? inc() : dec();
   } else {
-    for (int i = value; i < 0; i++) {
-      this->dec();
+    if (value > 0) {
+      for (int i = 0; i < value; i++) {
+        this->inc();
+      }
+    } else {
+      for (int i = 0; i < value; i++) {
+        this->dec();
+      }
     }
+
   }
 }
 
