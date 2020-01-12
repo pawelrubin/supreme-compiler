@@ -136,8 +136,6 @@ int main(int argc, char **argv) {
     try {
       yyparse();
       std::cout << "Compiled successfully" << std::endl;
-      // data->print_symbols();
-      // code->print_code();
       code->fprint_code(argv[2]);
     } catch(std::string msg) {
       yyerror(msg);

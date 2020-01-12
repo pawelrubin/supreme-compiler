@@ -18,7 +18,7 @@ void Code::insert_jump_address(integer k, integer j) {
   std::string& jump = code[k];
   std::size_t pos = jump.find("-1");
   if (pos != std::string::npos)
-    jump.replace(pos, 2, std::to_string(j) + " # " + std::to_string(k));
+    jump.replace(pos, 2, std::to_string(j));
 }
 
 // sets shifts
@@ -68,22 +68,6 @@ integer next_power_of_two_exponent(integer n) {
  * high order operations *
  *************************
 */
-
-// void Code::parity_test(TValue* value) {
-//   if (NumberValue *num = dynamic_cast<NumberValue*>(value)) {
-//     insert_to_acc(num->get_value() % 2);
-//   } else {
-//     TIdentifier *id = static_cast<IdentifierValue*>(value)->get_identifier();
-//     if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(id)) {
-//       avid->load_value_to_register(Register::IDR);
-//       id = new TVariableIdentifier(new Variable(data->get_register(Register::IDR)));
-//     }
-//     id->load_value_to_acc();
-//     rshift();
-//     lshift();
-//     sub(id->get_addr());
-//   }
-// }
 
 void Code::parity_test(TIdentifier* id) {
   if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(id)) {
@@ -265,21 +249,4 @@ void Code::insert_to_acc(integer value) { // TODO: Optimize constants generation
 
 void Code::reset_acc() {
   this->sub(0);
-}
-
-
-void Code::set_lshift() {
-  if (!data->is_lshift_set()) {
-    reset_acc();
-    inc();
-    store(1);
-  }
-}
-
-void Code::set_rshift() {
-  if (!data->is_rshift_set()) {
-    reset_acc();
-    dec();
-    store(2);
-  }
 }

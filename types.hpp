@@ -37,7 +37,7 @@ class TValueExpression : public TExpression {
     TValue *value;
 
   public:
-    TValueExpression(TValue *value);
+    TValueExpression(TValue*);
     void load_expr() override;
 };
 
@@ -53,7 +53,7 @@ class TBinaryExpression : public TExpression {
     void mod();
 
   public:
-    TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOperator op);
+    TBinaryExpression(TValue*, TValue*, BinaryOperator);
     void load_expr() override;
 };
 
@@ -77,7 +77,7 @@ class TValue {
 
 class NumberValue : public TValue {
   public:
-    NumberValue(integer value);
+    NumberValue(integer);
     void load_value() override;
     void insert_to_VLR() override;
 };
@@ -87,7 +87,7 @@ class IdentifierValue : public TValue {
     TIdentifier *identifier;
 
   public:
-    IdentifierValue(TIdentifier *identifier);
+    IdentifierValue(TIdentifier*);
     void load_value() override;
     void insert_to_VLR() override;
     TIdentifier* get_identifier();
@@ -116,8 +116,8 @@ class TVariableIdentifier : public TIdentifier {
     Variable *variable;
 
   public:
-    TVariableIdentifier(ident var_name);
-    TVariableIdentifier(Variable* pseudo);
+    TVariableIdentifier(ident);
+    TVariableIdentifier(Variable*);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
     integer get_addr();
@@ -131,7 +131,7 @@ class TArrayVariableIdentifier : public TIdentifier {
 
   public:
     using TIdentifier::get_addr;
-    TArrayVariableIdentifier(ident array_name, ident index_name);
+    TArrayVariableIdentifier(ident, ident);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
     void negate(bool) override;
@@ -143,7 +143,7 @@ class TArrayNumIdentifier : public TIdentifier {
     integer num_value;
 
   public:
-    TArrayNumIdentifier(ident array_name, integer num_value);
+    TArrayNumIdentifier(ident, integer);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
     integer get_addr();

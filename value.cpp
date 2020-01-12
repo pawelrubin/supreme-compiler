@@ -1,0 +1,40 @@
+#include "types.hpp"
+#include "code.hpp"
+
+NumberValue::NumberValue(integer value) {
+  this->value = value;
+}
+
+integer TValue::get_value() {
+  return this->value;
+}
+
+void NumberValue::load_value() {
+  code->insert_to_acc(this->value);
+}
+
+void NumberValue::insert_to_VLR() {
+  code->insert_to_acc(this->value);
+  code->store(data->get_register(Register::VLR));
+}
+
+IdentifierValue::IdentifierValue(TIdentifier *identifier) {
+  this->identifier = identifier;
+}
+
+void IdentifierValue::load_value() {
+  if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(this->identifier)) {
+    avid->load_addr_to_register(Register::IDR);
+    code->loadi(data->get_register(Register::IDR));
+  } else {
+    code->load(this->identifier->get_addr());
+  }
+}
+
+void IdentifierValue::insert_to_VLR() {
+  // this->identifier->
+}
+
+TIdentifier* IdentifierValue::get_identifier() {
+  return this->identifier;
+}

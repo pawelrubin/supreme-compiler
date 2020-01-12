@@ -56,14 +56,6 @@ Symbol* Data::get_symbol(ident id) {
   return this->symbols[id];
 }
 
-bool Data::is_lshift_set() {
-  return lshift_set;
-}
-
-bool Data::is_rshift_set() {
-  return rshift_set;
-}
-
 integer Data::get_register(Register reg) { // TODO rename
   return memory_offset + integer(reg) + 1;
 }

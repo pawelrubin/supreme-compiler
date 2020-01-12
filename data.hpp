@@ -43,14 +43,14 @@ class Array : public Symbol {
 
   public:
     using Symbol::get_addr;
-    Array(integer addr, integer start, integer end);
-    integer get_addr(integer index);
+    Array(integer, integer, integer);
+    integer get_addr(integer);
     integer get_norm_addr();
 };
 
 /**
  * 
- * Virtual machine memory: [ACC, RSHIFT, LSHIFT, Symbols..., IDR, IDR1, VLR, A, B]
+ * Virtual machine memory: [ACC, LSHIFT, RSHIFT, Symbols..., IDR, IDR1, VLR, A, B, ...]
  *
  **/
 class Data {
@@ -62,19 +62,13 @@ class Data {
     integer memory_offset = 3; // ACC
     std::unordered_map<ident, Symbol*> symbols;
 
-    bool lshift_set;
-    bool rshift_set;
-
-    bool is_declared(ident id);
-    void update_offset(integer value);
+    bool is_declared(ident);
+    void update_offset(integer);
 
   public:
     integer get_register(Register);
-    void declare_variable(ident id);
-    void declare_array(ident id, integer start, integer end);
+    void declare_variable(ident);
+    void declare_array(ident, integer, integer);
     void print_symbols();
-    Symbol* get_symbol(ident id);
-
-    bool is_lshift_set(); // is p(1) set to 1
-    bool is_rshift_set(); // is p(2) set to -1
+    Symbol* get_symbol(ident);
 };
