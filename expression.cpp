@@ -164,33 +164,38 @@ void TBinaryExpression::times() {
   TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
   TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
-  code->set_sign_bit(lid, rid); // stores sign bit in Register::D
-
+  code->set_sign_bit(lid, rid);                     // stores sign bit in Register::D
+                                                      
   code->reset_acc();
   code->store(data->get_register(Register::A));
+// while (a != 0) {
   lid->load_value_to_acc();
+  // if (a & 1) {
     integer j = code->get_instruction_count();
     code->jzero(-j - 1); // IDEA jzero should return its addrs
     code->parity_test(lid);
     code->jzero(4);
       code->load(data->get_register(Register::A));
       code->add(rid->get_addr());
-      code->store(data->get_register(Register::A));
+      code->store(data->get_register(Register::A)); // result += b
+  // }
     rid->load_value_to_acc();
     code->lshift();
-    code->store(rid->get_addr());
+    code->store(rid->get_addr());                   // a >>= 1
     lid->load_value_to_acc();
     code->rshift();
-    code->store(lid->get_addr());
+    code->store(lid->get_addr());                   // b <<= 1
     code->jump(j);
   code->insert_jump_address(j, code->get_instruction_count());
-
+// }
+// if (sign_bit) {
   code->load(data->get_register(Register::D));
-  code->jzero(5); // negate result if sign bit was set 
+  code->jzero(5); 
     code->load(data->get_register(Register::A));
     code->sub(data->get_register(Register::A));
     code->sub(data->get_register(Register::A));
-    code->store(data->get_register(Register::A));
+    code->store(data->get_register(Register::A));   // result *= -1
+// }
   code->load(data->get_register(Register::A));
 }
 
@@ -264,24 +269,24 @@ void TBinaryExpression::div() {
     code->jump(k);
   // } while (multiple != 0)
     
+  // if (sign_bit) {
     code->load(data->get_register(Register::D));
     integer l = code->get_instruction_count();
-    code->jzero(-l - 1); // if sign bit was set 
+    code->jzero(-l - 1);
       code->load(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
       code->sub(data->get_register(Register::A));
-      code->store(data->get_register(Register::A));                   // negate result
-      lvalue->load_value();
-      code->jneg(2); code->jump(code->get_instruction_count() + 7);   // if divident < 0
-        code->load(data->get_register(Register::F));
-        code->jpos(2); code->jump(code->get_instruction_count() + 4); // if remain > 0
-          code->load(data->get_register(Register::A));
-          code->dec();                                                // result--
-          code->store(data->get_register(Register::A));
-
+      code->store(data->get_register(Register::A));                 // negate result
+      code->load(data->get_register(Register::F));
+    // if (remain > 0) {
+      code->jzero(4);
+        code->load(data->get_register(Register::A));
+        code->dec();                                                // result--
+        code->store(data->get_register(Register::A));
+    // }
     code->insert_jump_address(l, code->get_instruction_count());    
     code->load(data->get_register(Register::A));
-
+  // }
 
 
   code->jump(code->get_instruction_count() + 2);
@@ -291,7 +296,7 @@ void TBinaryExpression::div() {
 // }
 }
 
-/* TODO: Modulo */
+/* TODO: mathematical modulo for negative numbers */
 void TBinaryExpression::mod() {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
@@ -363,11 +368,36 @@ void TBinaryExpression::mod() {
   // } while (multiple != 0)
     
     code->load(data->get_register(Register::D));
-    code->jzero(5); // negate result if sign bit was set 
-      code->load(data->get_register(Register::F));
-      code->sub(data->get_register(Register::F));
-      code->sub(data->get_register(Register::F));
-      code->store(data->get_register(Register::F));
+    k = code->get_instruction_count();
+  // if (sign_bit) {
+    code->jzero(-k - 1); // negate result if sign bit was set 
+      rvalue->load_value();
+      code->jneg(2); code->jump(code->get_instruction_count() + 3); // b < 0
+        code->add(data->get_register(Register::F));
+        code->store(data->get_register(Register::F));
+      
+      lvalue->load_value();
+      integer l = code->get_instruction_count();
+      code->jneg(2); code->jump(-1); // a < 0
+        rvalue->load_value();
+        code->sub(data->get_register(Register::F));
+        code->store(data->get_register(Register::F));
+      code->insert_jump_address(l + 1 , 1 + code->get_instruction_count());
+      integer m = code->get_instruction_count();
+      code->jump(-1);
+    code->insert_jump_address(k, code->get_instruction_count());
+  // } else { 
+      lvalue->load_value();
+      code->jpos(5);
+        code->load(data->get_register(Register::F));
+        code->sub(data->get_register(Register::F));
+        code->sub(data->get_register(Register::F));
+        code->store(data->get_register(Register::F));
+    code->insert_jump_address(m, code->get_instruction_count());
+  // }
+
+
+
     code->load(data->get_register(Register::F));
 
   code->jump(code->get_instruction_count() + 2);

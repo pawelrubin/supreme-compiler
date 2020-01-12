@@ -119,6 +119,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
  ***********************
 */
 
+// assign
 void Code::assign(TIdentifier *identifier, TExpression *expr) {
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
     id->load_addr_to_register(Register::IDR1);         // IDR1 = id.addr ; IDR1 cuz load_expr() might be using IDR
