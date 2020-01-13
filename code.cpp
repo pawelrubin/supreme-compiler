@@ -117,41 +117,6 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
 }
 
 /*
- ***********************
- * language operations *
- ***********************
-*/
-
-// assign
-void Code::assign(TIdentifier *identifier, TExpression *expr) {
-  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
-    id->load_addr_to_register(Register::IDR1);         // IDR1 = id.addr ; IDR1 cuz load_expr() might be using IDR
-    expr->load_expr();               // ACC = expr.value.value
-    this->storei(data->get_register(Register::IDR1));  // p(IDR1) = ACC
-  } else {
-    expr->load_expr();                   // ACC = expr.value.value
-    this->store(identifier->get_addr()); // p(id.addr) = ACC
-  }
-}
-
-void Code::write(TValue *value) {
-  value->load_value(); // ACC = value.value
-  this->put();         // PUT
-}
-
-void Code::read(TIdentifier *identifier) {
-  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
-    id->load_addr_to_register(Register::IDR);         // IDR = id.addr
-    this->get();                    // ACC = input
-    this->storei(data->get_register(Register::IDR));  // p(IDR) = ACC
-  } else {
-    this->get();                         // ACC = input
-    this->store(identifier->get_addr()); // p(id.addr) = ACC
-  }
-}
-
-
-/*
  ***********
  * atomics *
  ***********
@@ -163,7 +128,16 @@ void Code::atomic(std::string instr) {
 }
 
 void Code::atomic(std::string instr, integer i) {
-  this->code.push_back(instr + " " + std::to_string(i));
+  std::string next_instruction = instr + " " + std::to_string(i);
+  if (instr == "LOAD") {
+    if (this->code.back().substr(0, 5) == "STORE" and this->code.back().substr(6) == std::to_string(i)) {
+      // std::cerr << instruction_count << ": " << this->code.back().substr(0, 5) << " " << this->code.back().substr(6) << "; "<< std::to_string(i) << std::endl;
+    } 
+    if (this->code.back().substr(0, 5) == "STORE" and this->code.back().substr(6) == std::to_string(i)) {
+      // return;
+    }
+  }
+  this->code.push_back(next_instruction);
   this->update_offset(1);
 }
 
@@ -215,32 +189,36 @@ void Code::jump(integer j) {
   this->atomic("JUMP", j);
 }
 
-void Code::jump() {
+integer Code::jump() {
   this->atomic("JUMP", -1);
+  return instruction_count - 1;
 }
 
 void Code::jpos(integer j) {
   this->atomic("JPOS", instruction_count + j);
 }
 
-void Code::jpos() {
+integer Code::jpos() {
   this->atomic("JPOS", -1);
+  return instruction_count - 1;
 }
 
 void Code::jzero(integer j) {
   this->atomic("JZERO", instruction_count + j);
 }
 
-void Code::jzero() {
+integer Code::jzero() {
   this->atomic("JZERO", -1);
+  return instruction_count - 1;
 }
 
 void Code::jneg(integer j) {
   this->atomic("JNEG", instruction_count + j);
 }
 
-void Code::jneg() {
+integer Code::jneg() {
   this->atomic("JNEG", -1);
+  return instruction_count - 1;
 }
 
 void Code::halt() {

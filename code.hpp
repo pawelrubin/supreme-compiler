@@ -11,11 +11,13 @@ class Code {
   // IDEA methods should return number of instructions performed
   // IDEA indent output code
 
+  // IDEA remember last instruction for peephole optimization -> if last instruction was store x then dont call load x or loadi x
+
   private:
     codeList code;
     integer instruction_count = 0;
     void update_offset(long long);
-
+    
   public:
 
     integer get_instruction_count();
@@ -30,15 +32,10 @@ class Code {
     void print_code();
     void fprint_code(std::string);
 
-    // language operations
-    void assign(TIdentifier*, TExpression*);
-    void read(TIdentifier*);
-    void write(TValue*);
-
     // high order operations
-    void parity_test(TIdentifier*);
     void rshift();
     void lshift();
+    void parity_test(TIdentifier*);
     void set_sign_bit(TIdentifier*, TIdentifier*);
 
     // atomic operations
@@ -60,13 +57,13 @@ class Code {
     void dec();
 
     void jump(integer);
-    void jump();
     void jpos(integer);
-    void jpos();
     void jzero(integer);
-    void jzero();
     void jneg(integer);
-    void jneg();
+    integer jpos();
+    integer jzero();
+    integer jneg();
+    integer jump();
 
     void halt();
 

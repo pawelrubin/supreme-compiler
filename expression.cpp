@@ -2,13 +2,21 @@
 #include "code.hpp"
 
 #include <math.h>
+#include <iostream>
 
 TValueExpression::TValueExpression(TValue *value) {
   this->value = value;
 }
 
-void TValueExpression::load_expr() {
-  this->value->load_value();
+void TValueExpression::load_expr(TIdentifier* result) {
+  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+    id->load_addr_to_register(Register::IDR1);
+    this->value->load_value();
+    code->storei(data->get_register(Register::IDR1));
+  } else {
+    this->value->load_value();
+    code->store(result->get_addr());
+  }
 }
 
 TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOperator op) {
@@ -17,31 +25,62 @@ TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOpera
   this->op = op;
 }
 
-void TBinaryExpression::load_expr() {
+void TBinaryExpression::load_expr(TIdentifier* result) {
   // TODO: load_expr should have identifier as a parameter to use it as result register
-  //  
+  //
+  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+    id->load_addr_to_register(Register::IDR1);
+  }
+
   switch (this->op) {
   case BinaryOperator::PLUS:
-    this->plus();
+    if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+      id->load_addr_to_register(Register::IDR1);
+      this->plus();
+      code->storei(data->get_register(Register::IDR1));
+    } else {
+      this->plus();
+      code->store(result->get_addr());
+    }
     break;
   
   case BinaryOperator::MINUS:
-    this->minus();
+    if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+      id->load_addr_to_register(Register::IDR1);
+      this->minus();
+      code->storei(data->get_register(Register::IDR1));
+    } else {
+      this->minus();
+      code->store(result->get_addr());
+    }
     break;
 
   case BinaryOperator::TIMES:
-    this->times();
-    
+    if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+      id->load_addr_to_register(Register::IDR1);
+      this->times(data->get_register(Register::IDR1));
+    } else {
+      std::cout << "direct" << std::endl;
+      this->times(result->get_addr());
+    }
     break;
   
   case BinaryOperator::DIV:
-    this->div();
-    
+    if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+      id->load_addr_to_register(Register::IDR1);
+      this->div(data->get_register(Register::IDR1));
+    } else {
+      this->div(result->get_addr());
+    }
     break;
   
   case BinaryOperator::MOD:
-    this->mod();
-    
+    if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+      id->load_addr_to_register(Register::IDR1);
+      this->mod(data->get_register(Register::IDR1));
+    } else {
+      this->mod(result->get_addr());
+    }
     break;
   }
 }
@@ -154,10 +193,15 @@ void TBinaryExpression::minus() { // TODO refactor
   }
 }
 
-void TBinaryExpression::times() {
+void TBinaryExpression::times(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() * rv->get_value());
+      if (identifier_address == data->get_register(Register::IDR1)) {
+        code->storei(identifier_address);
+      } else {
+        code->store(identifier_address);
+      }
       return;
     }
   }
@@ -169,17 +213,21 @@ void TBinaryExpression::times() {
   code->set_sign_bit(lid, rid);                     // stores sign bit in Register::D
                                                       
   code->reset_acc();
-  code->store(data->get_register(Register::A));
+  
+  integer addr_for_result = identifier_address;
+  if (identifier_address == data->get_register(Register::IDR1)) {
+    addr_for_result = data->get_register(Register::A);
+  }
+  code->store(addr_for_result);
 // while (a != 0) {
   lid->load_value_to_acc();
   // if (a & 1) {
-    integer j = code->get_instruction_count();
-    code->jzero(); // IDEA jzero should return its addrs
+    integer j = code->jzero();
     code->parity_test(lid);
     code->jzero(4);
-      code->load(data->get_register(Register::A));
+      code->load(addr_for_result);
       code->add(rid->get_addr());
-      code->store(data->get_register(Register::A)); // result += b
+      code->store(addr_for_result); // result += b
   // }
     rid->load_value_to_acc();
     code->lshift();
@@ -193,19 +241,27 @@ void TBinaryExpression::times() {
 // if (sign_bit) {
   code->load(data->get_register(Register::D));
   code->jzero(5); 
-    code->load(data->get_register(Register::A));
-    code->sub(data->get_register(Register::A));
-    code->sub(data->get_register(Register::A));
-    code->store(data->get_register(Register::A));   // result *= -1
+    code->load(addr_for_result);
+    code->sub(addr_for_result);
+    code->sub(addr_for_result);
+    code->store(addr_for_result);   // result *= -1
 // }
-  code->load(data->get_register(Register::A));
+  if (addr_for_result == data->get_register(Register::A)) {
+    code->load(data->get_register(Register::A));
+    code->storei(identifier_address);
+  }
 }
 
-void TBinaryExpression::div() {
+void TBinaryExpression::div(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->reset_acc();
       else code->insert_to_acc(floor((double) lv->get_value() / (double) rv->get_value()));
+      if (identifier_address == data->get_register(Register::IDR1)) {
+        code->storei(identifier_address);
+      } else {
+        code->store(identifier_address);
+      }
       return;
     }
   }
@@ -223,15 +279,18 @@ void TBinaryExpression::div() {
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
     code->reset_acc();
-    code->store(data->get_register(Register::A));   // result = 0
+    integer addr_for_result = identifier_address;
+    if (identifier_address == data->get_register(Register::IDR1)) {
+      addr_for_result = data->get_register(Register::A);
+    }
+    code->store(addr_for_result);   // result = 0
     code->inc();
     code->store(data->get_register(Register::E));   // multiple = 1
   // while (scaled_divisor < dividend) {
     lid->load_value_to_acc(); 
     code->store(data->get_register(Register::F));   // remain = dividend
     code->sub(rid->get_addr());
-    integer k = code->get_instruction_count();
-    code->jneg();
+    integer k = code->jneg();
     code->jzero();                            // while scaled_divisor < dividend
       rid->load_value_to_acc();
       code->lshift();
@@ -254,9 +313,9 @@ void TBinaryExpression::div() {
     code->sub(rid->get_addr());                     // sub scaled_divisor
     code->jneg(5);                                  
       code->store(data->get_register(Register::F)); // remain -= scaled_divisor
-      code->load(data->get_register(Register::A));  
+      code->load(addr_for_result);  
       code->add(data->get_register(Register::E));   
-      code->store(data->get_register(Register::A)); // result += multiple
+      code->store(addr_for_result); // result += multiple
     // }
 
     code->load(rid->get_addr());
@@ -273,36 +332,51 @@ void TBinaryExpression::div() {
     
   // if (sign_bit) {
     code->load(data->get_register(Register::D));
-    integer l = code->get_instruction_count();
-    code->jzero(-l - 1);
-      code->load(data->get_register(Register::A));
-      code->sub(data->get_register(Register::A));
-      code->sub(data->get_register(Register::A));
-      code->store(data->get_register(Register::A));                 // negate result
+    integer l = code->jzero();
+      code->load(addr_for_result);
+      code->sub(addr_for_result);
+      code->sub(addr_for_result);
+      code->store(addr_for_result);                 // negate result
       code->load(data->get_register(Register::F));
     // if (remain > 0) {
       code->jzero(4);
-        code->load(data->get_register(Register::A));
+        code->load(addr_for_result);
         code->dec();                                                // result--
-        code->store(data->get_register(Register::A));
-    // }
+        code->store(addr_for_result);
     code->insert_jump_address(l, code->get_instruction_count());    
-    code->load(data->get_register(Register::A));
+    // }
+    
+    if (addr_for_result == data->get_register(Register::A)) {
+      code->load(data->get_register(Register::A));
+      code->storei(identifier_address);
+    }
+  
   // }
-
-
-  code->jump(code->get_instruction_count() + 2);
+  integer z = code->jump();
   code->insert_jump_address(j, code->get_instruction_count());
 // } else {
-  code->reset_acc();
+    if (addr_for_result == data->get_register(Register::A)) {
+      code->load(data->get_register(Register::A));
+      code->reset_acc();
+      code->storei(identifier_address);
+    } else {
+      code->reset_acc();
+      code->store(addr_for_result);
+    }
+  code->insert_jump_address(z, code->get_instruction_count());
 // }
 }
 
-void TBinaryExpression::mod() {
+void TBinaryExpression::mod(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->insert_to_acc(0);
       else code->insert_to_acc(((lv->get_value() % rv->get_value()) + rv->get_value()) % rv->get_value());
+      if (identifier_address == data->get_register(Register::IDR1)) {
+        code->storei(identifier_address);
+      } else {
+        code->store(identifier_address);
+      }
       return;
     }
   }
@@ -312,10 +386,14 @@ void TBinaryExpression::mod() {
   TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
   TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
+  integer addr_for_result = identifier_address;
+  if (identifier_address == data->get_register(Register::IDR1)) {
+    addr_for_result = data->get_register(Register::F);
+  }
+
 // if (divisor != 0) {
   rid->load_value_to_acc();
-  integer j = code->get_instruction_count();
-  code->jzero();
+  integer j = code->jzero();
     
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
@@ -325,10 +403,9 @@ void TBinaryExpression::mod() {
     code->store(data->get_register(Register::E));   // multiple = 1
   // while (scaled_divisor < dividend) {
     lid->load_value_to_acc(); 
-    code->store(data->get_register(Register::F));   // remain = dividend
+    code->store(addr_for_result);   // remain = dividend
     code->sub(rid->get_addr());
-    integer k = code->get_instruction_count();
-    code->jneg();
+    integer k = code->jneg();
     code->jzero();                            // while scaled_divisor < dividend
       rid->load_value_to_acc();
       code->lshift();
@@ -347,10 +424,10 @@ void TBinaryExpression::mod() {
     k = code->get_instruction_count();
   // do {
     // if (remain >= scaled_divisor) {
-    code->load(data->get_register(Register::F));    // load remain 
+    code->load(addr_for_result);    // load remain 
     code->sub(rid->get_addr());                     // sub scaled_divisor
     code->jneg(5);                                  
-      code->store(data->get_register(Register::F)); // remain -= scaled_divisor
+      code->store(addr_for_result); // remain -= scaled_divisor
       code->load(data->get_register(Register::A));  
       code->add(data->get_register(Register::E));   
       code->store(data->get_register(Register::A)); // result += multiple
@@ -369,20 +446,19 @@ void TBinaryExpression::mod() {
   // } while (multiple != 0)
     
     code->load(data->get_register(Register::D));
-    k = code->get_instruction_count();
   // if (sign_bit) {
-    code->jzero(); // negate result if sign bit was set 
+    k = code->jzero(); 
       rvalue->load_value();
       code->jneg(2); code->jump(code->get_instruction_count() + 3); // b < 0
-        code->add(data->get_register(Register::F));
-        code->store(data->get_register(Register::F));
+        code->add(addr_for_result);
+        code->store(addr_for_result);
       
       lvalue->load_value();
       integer l = code->get_instruction_count();
       code->jneg(2); code->jump(); // a < 0
         rvalue->load_value();
-        code->sub(data->get_register(Register::F));
-        code->store(data->get_register(Register::F));
+        code->sub(addr_for_result);
+        code->store(addr_for_result);
       code->insert_jump_address(l + 1 , 1 + code->get_instruction_count());
       integer m = code->get_instruction_count();
       code->jump();
@@ -390,20 +466,29 @@ void TBinaryExpression::mod() {
   // } else { 
       lvalue->load_value();
       code->jpos(5);
-        code->load(data->get_register(Register::F));
-        code->sub(data->get_register(Register::F));
-        code->sub(data->get_register(Register::F));
-        code->store(data->get_register(Register::F));
+        code->load(addr_for_result);
+        code->sub(addr_for_result);
+        code->sub(addr_for_result);
+        code->store(addr_for_result);
     code->insert_jump_address(m, code->get_instruction_count());
   // }
 
+    if (addr_for_result == data->get_register(Register::F)) {
+      code->load(data->get_register(Register::F));
+      code->storei(identifier_address);
+    }
 
-
-    code->load(data->get_register(Register::F));
-
-  code->jump(code->get_instruction_count() + 2);
+  integer z = code->jump();
   code->insert_jump_address(j, code->get_instruction_count());
 // } else {
-  code->reset_acc();
+    if (addr_for_result == data->get_register(Register::F)) {
+      code->load(data->get_register(Register::F));
+      code->reset_acc();
+      code->storei(identifier_address);
+    } else {
+      code->reset_acc();
+      code->store(addr_for_result);
+    }
+  code->insert_jump_address(z, code->get_instruction_count());
 // }
 }

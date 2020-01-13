@@ -215,7 +215,7 @@ class TCondition {
 
 class TExpression {
   public:
-    virtual void load_expr() {};
+    virtual void load_expr(TIdentifier*) {};
 };
 
 class TValueExpression : public TExpression {
@@ -224,7 +224,7 @@ class TValueExpression : public TExpression {
 
   public:
     TValueExpression(TValue*);
-    void load_expr() override;
+    void load_expr(TIdentifier*) override;
 };
 
 class TBinaryExpression : public TExpression {
@@ -234,13 +234,13 @@ class TBinaryExpression : public TExpression {
     BinaryOperator op;
     void plus();
     void minus();
-    void times();
-    void div();
-    void mod();
+    void times(integer addr_for_result);
+    void div(integer addr_for_result);
+    void mod(integer addr_for_result);
 
   public:
     TBinaryExpression(TValue*, TValue*, BinaryOperator);
-    void load_expr() override;
+    void load_expr(TIdentifier*) override;
 };
 
 

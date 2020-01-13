@@ -32,8 +32,7 @@ void TForToCommand::load_command(){
 
   integer s = code->get_instruction_count(); // s «═════ ╗
     code->sub(it->get_addr() + 1); // sub it_end         ║
-    integer e = code->get_instruction_count();        // ║             
-    code->jpos();                  // jpos e             ║
+    integer e = code->jpos();      // jpos e             ║             
     for (const auto &command : *this->for_block) {    // ║
       command->load_command();     //                    ║
     }                              //                    ║
@@ -57,8 +56,7 @@ void TForDownToCommand::load_command() {
 
   integer s = code->get_instruction_count(); // s «═════ ╗
     code->sub(it->get_addr() + 1); // sub it_end         ║
-    integer e = code->get_instruction_count();        // ║             
-    code->jneg();                  // jpos e             ║
+    integer e = code->jneg();      // jpos e             ║
     for (const auto &command : *this->for_block) {    // ║
       command->load_command();     //                    ║
     }                              //                    ║
@@ -93,8 +91,7 @@ void TIfElseCommand::load_command() {
   for (const auto &command : *this->if_block) {
     command->load_command();
   }
-  integer j = code->get_instruction_count();
-  code->jump();
+  integer j = code->jump();
   code->insert_jump_address(this->condition->get_jump_address());
   for (const auto &command : *this->else_block) {
     command->load_command();
@@ -108,7 +105,8 @@ TWriteCommand::TWriteCommand(TValue* value) {
 }
 
 void TWriteCommand::load_command() {
-  code->write(this->value);
+  this->value->load_value(); // ACC = value.value
+  code->put();          // PUT
 }
 
 
@@ -117,7 +115,14 @@ TReadCommand::TReadCommand(TIdentifier* identifier) {
 }
 
 void TReadCommand::load_command() {
-  code->read(this->identifier);
+  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(this->identifier)) {
+    id->load_addr_to_register(Register::IDR);         // IDR = id.addr
+    code->get();                    // ACC = input
+    code->storei(data->get_register(Register::IDR));  // p(IDR) = ACC
+  } else {
+    code->get();                         // ACC = input
+    code->store(this->identifier->get_addr()); // p(id.addr) = ACC
+  }
 }
 
 
@@ -127,7 +132,13 @@ TAssignCommand::TAssignCommand(TIdentifier* identifier, TExpression* expression)
 }
 
 void TAssignCommand::load_command() {
-  code->assign(this->identifier, this->expression);
+  // if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(identifier)) {
+  //   id->load_addr_to_register(Register::IDR1);         // IDR1 = id.addr ; IDR1 cuz load_expr() might be using IDR
+  //   this->expression->load_expr();               // ACC = expr.value.value
+  //   code->storei(data->get_register(Register::IDR1));  // p(IDR1) = ACC
+  // } else {
+  //   this->expression->load_expr();                   // ACC = expr.value.value
+  //   code->store(identifier->get_addr());              // p(id.addr) = ACC
+  // }
+  this->expression->load_expr(this->identifier);
 }
-
-

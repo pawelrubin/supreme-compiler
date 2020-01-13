@@ -17,7 +17,7 @@ integer TCondition::get_cond_address() {
 
 void TCondition::load_condition() {
   cond_address = code->get_instruction_count();
-  TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr();
+  TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr(new TVariableIdentifier(new Variable(0)));
   jump_address = code->get_instruction_count();
   switch (this->op) {
   case ConditionOperator::EQ:
