@@ -255,9 +255,9 @@ void Code::halt() {
 
 void Code::insert_to_acc(integer value) {
   this->reset_acc();
-  if (abs(value) > 10) {
+  if (llabs(value) > 10) {
     std::string bin_value;
-    unsigned long long x = abs(value); 
+    long long x = llabs(value); 
     for(; x > 0; x /= 2) bin_value += char(x%2 + '0');
     std::reverse(bin_value.begin(), bin_value.end());
     for (std::string::size_type i = 0; i < bin_value.size() - 1; ++i) {
