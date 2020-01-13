@@ -85,15 +85,15 @@ commands:
 ;
 
 command:
-  identifier ASSIGN expression ';'                            { $$ = new TAssignCommand($1, $3);      }
-| IF condition THEN commands ELSE commands ENDIF              { $$ = new TIfElseCommand($2, $4, $6);  }
-| IF condition THEN commands ENDIF                            { $$ = new TIfCommand($2, $4);          }
-| WHILE condition DO commands ENDWHILE                        {                                       }
-| DO commands WHILE condition ENDDO                           {                                       }
-| FOR pidentifier FROM value TO value DO commands ENDFOR      {                                       }
-| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  {                                       }
-| READ identifier ';'                                         { $$ = new TReadCommand($2);            }
-| WRITE value ';'                                             { $$ = new TWriteCommand($2);           }
+  identifier ASSIGN expression ';'                            { $$ = new TAssignCommand($1, $3);            }
+| IF condition THEN commands ELSE commands ENDIF              { $$ = new TIfElseCommand($2, $4, $6);        }
+| IF condition THEN commands ENDIF                            { $$ = new TIfCommand($2, $4);                }
+| WHILE condition DO commands ENDWHILE                        { $$ = new TWhileCommand($2, $4);             }
+| DO commands WHILE condition ENDDO                           { $$ = new TDoWhileCommand($2, $4);           }
+| FOR pidentifier FROM value TO value DO commands ENDFOR      { $$ = new TForToCommand(*$2, $4, $6, $8);    }
+| FOR pidentifier FROM value DOWNTO value DO commands ENDFOR  { $$ = new TForDownToCommand(*$2, $4, $6, $8);}
+| READ identifier ';'                                         { $$ = new TReadCommand($2);                  }
+| WRITE value ';'                                             { $$ = new TWriteCommand($2);                 }
 ;
 
 expression:
@@ -151,9 +151,6 @@ int main(int argc, char **argv) {
       std::cout << "Compiled successfully" << std::endl;
       code->fprint_code(argv[2]);
     } catch(std::string msg) {
-      std::cerr << "XD" << std::endl;
-      data->print_symbols();
-      code->print_code();
       yyerror(msg);
     }
   } else {

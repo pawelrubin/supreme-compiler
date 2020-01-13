@@ -7,13 +7,18 @@ TCondition::TCondition(TValue* lvalue, TValue* rvalue, ConditionOperator op) {
   this->op = op;
 }
 
-integer TCondition::get_address() {
-  return this->address;
+integer TCondition::get_jump_address() {
+  return this->jump_address;
+}
+
+integer TCondition::get_cond_address() {
+  return this->cond_address;
 }
 
 void TCondition::load_condition() {
+  cond_address = code->get_instruction_count();
   TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr();
-  address = code->get_instruction_count();
+  jump_address = code->get_instruction_count();
   switch (this->op) {
   case ConditionOperator::EQ:
     this->eq();
@@ -41,7 +46,7 @@ void TCondition::load_condition() {
 void TCondition::eq() {
   code->jzero(2);
   code->jump();
-  this->address++;
+  this->jump_address++;
 }
 
 void TCondition::neq() {
@@ -51,13 +56,13 @@ void TCondition::neq() {
 void TCondition::le() {
   code->jneg(2);
   code->jump();
-  this->address++;
+  this->jump_address++;
 }
 
 void TCondition::ge() {
   code->jpos(2);
   code->jump();
-  this->address++;
+  this->jump_address++;
 }
 
 void TCondition::leq() {

@@ -18,6 +18,8 @@ TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOpera
 }
 
 void TBinaryExpression::load_expr() {
+  // TODO: load_expr should have identifier as a parameter to use it as result register
+  //  
   switch (this->op) {
   case BinaryOperator::PLUS:
     this->plus();

@@ -17,6 +17,13 @@ void Code::insert_jump_address(integer k, integer j) {
     jump.replace(pos, 2, std::to_string(j));
 }
 
+void Code::insert_jump_address(integer k) {
+  std::string& jump = code[k];
+    std::size_t pos = jump.find("-1");
+    if (pos != std::string::npos)
+      jump.replace(pos, 2, std::to_string(instruction_count));
+}
+
 // sets shifts
 void Code::start_code() {
   reset_acc();

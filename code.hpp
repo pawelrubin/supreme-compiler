@@ -21,6 +21,7 @@ class Code {
     integer get_instruction_count();
 
     void insert_jump_address(integer, integer);
+    void insert_jump_address(integer);
 
     // utilities
     void start_code();

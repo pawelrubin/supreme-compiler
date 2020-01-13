@@ -1,8 +1,6 @@
 #include "types.hpp"
 #include "code.hpp"
 
-#include <iostream>
-
 
 void TIdentifier::load_value_to_register(Register reg) {
   this->load_value_to_acc();
@@ -11,7 +9,11 @@ void TIdentifier::load_value_to_register(Register reg) {
 
 
 TVariableIdentifier::TVariableIdentifier(ident var_name) {
-  this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+  if (data->is_declared(var_name)) {
+    this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+  } else {
+    this->variable = data->declare_bad_variable(var_name);
+  }
 }
 
 TVariableIdentifier::TVariableIdentifier(Variable *pseudo) {
@@ -43,7 +45,11 @@ void TVariableIdentifier::negate(bool is_loaded) {
 
 TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
-  this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+  if (data->is_declared(var_name)) {
+    this->variable = static_cast<Variable *>(data->get_symbol(var_name));
+  } else {
+    this->variable = data->declare_bad_variable(var_name);
+  }
 }
 
 void TArrayVariableIdentifier::load_addr_to_register(Register reg) {

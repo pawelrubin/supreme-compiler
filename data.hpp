@@ -16,7 +16,8 @@ enum class Register {
   D,
   E,
   F,
-  G
+  G,
+  Count
 };
 
 class Symbol {
@@ -27,6 +28,7 @@ class Symbol {
     explicit Symbol(integer addr);
     Symbol() = default;
     virtual integer get_addr();
+    void set_addr(integer a) {this->addr = a;}; 
 };
 
 class Variable : public Symbol {
@@ -63,13 +65,20 @@ class Data {
     integer memory_offset = 3; // ACC
     std::unordered_map<ident, Symbol*> symbols;
 
-    bool is_declared(ident);
+    integer iterators_count = 0;
+
     void update_offset(integer);
 
   public:
+    bool is_declared(ident);
     integer get_register(Register);
     void declare_variable(ident);
     void declare_array(ident, integer, integer);
+    Variable* new_iterator(ident);
+
+    Variable* declare_bad_variable(ident);
+
+    void del_iterator(ident);
     void print_symbols();
     Symbol* get_symbol(ident);
 };

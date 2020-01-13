@@ -36,7 +36,7 @@ enum class ConditionOperator {
 
 typedef std::vector<TCommand*> TCommandBlock;
 // typedef std::vector<TDeclaration*> TDeclarationBlock;
-
+// TODO refactor constructors
 class TProgram {
   protected:
     TCommandBlock* commands;
@@ -81,11 +81,19 @@ class TProgram {
 
 
 class TCommand {
-  protected:
-    integer length;
   public:
     TCommand() = default;
     virtual void load_command() {}
+};
+
+class TAssignCommand : public TCommand {
+  private:
+    TIdentifier* identifier;
+    TExpression* expression;
+
+  public:
+    TAssignCommand(TIdentifier*, TExpression*);
+    void load_command() override;
 };
 
 class TIfCommand : public TCommand {
@@ -93,8 +101,6 @@ class TIfCommand : public TCommand {
     TCondition* condition;
     TCommandBlock* if_block;
     
-    integer jump_address;
-
   public:
     TIfCommand(TCondition*, TCommandBlock*);
     void load_command() override;
@@ -109,12 +115,49 @@ class TIfElseCommand : public TIfCommand {
     void load_command() override;
 };
 
-class TWriteCommand : public TCommand {
+class TWhileCommand : public TCommand {
   private:
-    TValue* value;
+    TCondition* condition;
+    TCommandBlock* while_block;
 
   public:
-    TWriteCommand(TValue*);
+    TWhileCommand(TCondition* c, TCommandBlock* b) 
+      : condition(c), while_block(b) {}
+    void load_command() override;
+};
+
+class TDoWhileCommand : public TCommand {
+  private:
+    TCommandBlock* do_while_block;
+    TCondition* condition;
+
+  public:
+    TDoWhileCommand(TCommandBlock* b, TCondition* c)
+      : do_while_block(b), condition(c) {}
+    void load_command() override;
+};
+
+class TForCommand : public TCommand {
+  protected:
+    ident pidentifier;
+    TValue* start;
+    TValue* end;
+    TCommandBlock* for_block;
+
+  public:
+    TForCommand(ident p, TValue* s, TValue* e, TCommandBlock* c)
+      : pidentifier(p), start(s), end(e), for_block(c) {}
+};
+
+class TForToCommand : public TForCommand {
+  public:
+    using TForCommand::TForCommand;
+    void load_command() override;
+};
+
+class TForDownToCommand : public TForCommand {
+  public:
+    using TForCommand::TForCommand;
     void load_command() override;
 };
 
@@ -127,13 +170,12 @@ class TReadCommand : public TCommand {
     void load_command() override;
 };
 
-class TAssignCommand : public TCommand {
+class TWriteCommand : public TCommand {
   private:
-    TIdentifier* identifier;
-    TExpression* expression;
+    TValue* value;
 
   public:
-    TAssignCommand(TIdentifier*, TExpression*);
+    TWriteCommand(TValue*);
     void load_command() override;
 };
 
@@ -148,7 +190,8 @@ class TCondition {
     TValue *lvalue;
     TValue *rvalue;
     ConditionOperator op;
-    integer address;
+    integer jump_address;
+    integer cond_address;
 
     void eq();
     void neq();
@@ -158,7 +201,8 @@ class TCondition {
     void geq();
 
   public:
-    integer get_address();
+    integer get_jump_address();
+    integer get_cond_address();
     void load_condition();
     TCondition(TValue*, TValue*, ConditionOperator);
 };
@@ -233,11 +277,10 @@ class IdentifierValue : public TValue {
   public:
     IdentifierValue(TIdentifier*);
     void load_value() override;
-    void insert_to_VLR() override;
+    void insert_to_VLR() override; // TODO: delete this lmao
     void store_in_register(Register) override;
     TIdentifier* get_identifier();
 };
-
 
 /*
  ********************
@@ -249,7 +292,7 @@ class TIdentifier {
   protected:
   // TODO: write costs of operations in comments
   public:
-    virtual void load_addr_to_register(Register) {} // stores identifier address in IDR
+    virtual void load_addr_to_register(Register) {} // stores identifier jump_address in IDR
     virtual void load_value_to_register(Register); // stores identifier value in IDR
     virtual void load_value_to_acc() {}
     virtual integer get_addr() { return 0; }
@@ -294,4 +337,3 @@ class TArrayNumIdentifier : public TIdentifier {
     integer get_addr();
     void negate(bool) override;
 };
-
