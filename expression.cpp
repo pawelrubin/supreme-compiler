@@ -174,7 +174,7 @@ void TBinaryExpression::times() {
   lid->load_value_to_acc();
   // if (a & 1) {
     integer j = code->get_instruction_count();
-    code->jzero(-j - 1); // IDEA jzero should return its addrs
+    code->jzero(); // IDEA jzero should return its addrs
     code->parity_test(lid);
     code->jzero(4);
       code->load(data->get_register(Register::A));
@@ -218,7 +218,7 @@ void TBinaryExpression::div() {
 // if (divisor != 0) {
   rid->load_value_to_acc();
   integer j = code->get_instruction_count();
-  code->jzero(-j - 1);
+  code->jzero();
     
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
@@ -231,8 +231,8 @@ void TBinaryExpression::div() {
     code->store(data->get_register(Register::F));   // remain = dividend
     code->sub(rid->get_addr());
     integer k = code->get_instruction_count();
-    code->jneg(-k - 1);
-    code->jzero(-k - 2);                            // while scaled_divisor < dividend
+    code->jneg();
+    code->jzero();                            // while scaled_divisor < dividend
       rid->load_value_to_acc();
       code->lshift();
       code->store(rid->get_addr());                 // scaled_divisor *= 2
@@ -315,7 +315,7 @@ void TBinaryExpression::mod() {
 // if (divisor != 0) {
   rid->load_value_to_acc();
   integer j = code->get_instruction_count();
-  code->jzero(-j - 1);
+  code->jzero();
     
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
@@ -328,8 +328,8 @@ void TBinaryExpression::mod() {
     code->store(data->get_register(Register::F));   // remain = dividend
     code->sub(rid->get_addr());
     integer k = code->get_instruction_count();
-    code->jneg(-k - 1);
-    code->jzero(-k - 2);                            // while scaled_divisor < dividend
+    code->jneg();
+    code->jzero();                            // while scaled_divisor < dividend
       rid->load_value_to_acc();
       code->lshift();
       code->store(rid->get_addr());                 // scaled_divisor *= 2
@@ -371,7 +371,7 @@ void TBinaryExpression::mod() {
     code->load(data->get_register(Register::D));
     k = code->get_instruction_count();
   // if (sign_bit) {
-    code->jzero(-k - 1); // negate result if sign bit was set 
+    code->jzero(); // negate result if sign bit was set 
       rvalue->load_value();
       code->jneg(2); code->jump(code->get_instruction_count() + 3); // b < 0
         code->add(data->get_register(Register::F));
