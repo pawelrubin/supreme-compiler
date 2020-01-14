@@ -9,9 +9,7 @@ TProgram::TProgram(TCommandBlock* commands) {
 
 void TProgram::load_program() {
   code->start_code();
-  for (const auto &command : *this->commands) {
-    command->load_command();
-  }
+  commands->load_commands();
   code->end_code();
 }
 

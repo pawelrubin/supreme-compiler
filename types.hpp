@@ -10,6 +10,7 @@ extern Data *data;
 
 class TProgram;
 // class TDeclaration;
+class TCommandBlock;
 class TCommand;
 class TCondition;
 class TExpression;
@@ -34,9 +35,11 @@ enum class ConditionOperator {
   GEQ
 };
 
-typedef std::vector<TCommand*> TCommandBlock;
+typedef std::vector<TCommand*> commandList;
 // typedef std::vector<TDeclaration*> TDeclarationBlock;
 // TODO refactor constructors
+
+
 class TProgram {
   protected:
     TCommandBlock* commands;
@@ -79,6 +82,15 @@ class TProgram {
  *****************
  */
 
+class TCommandBlock {
+  private:
+    commandList commands;
+
+  public:
+    TCommandBlock(TCommand*); 
+    void add_command(TCommand*);
+    void load_commands();
+};
 
 class TCommand {
   public:
@@ -290,13 +302,17 @@ class IdentifierValue : public TValue {
 
 class TIdentifier {
   protected:
+    ident name;
   // TODO: write costs of operations in comments
   public:
+    TIdentifier() = default;
+    TIdentifier(ident n) : name(n) {}
     virtual void load_addr_to_register(Register) {} // stores identifier jump_address in IDR
     virtual void load_value_to_register(Register); // stores identifier value in IDR
     virtual void load_value_to_acc() {}
     virtual integer get_addr() { return 0; }
     virtual void negate(bool) {}
+    virtual ident get_name() { return name; }
 };
 
 class TVariableIdentifier : public TIdentifier {

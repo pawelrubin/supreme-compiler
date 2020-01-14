@@ -77,11 +77,8 @@ declarations:
 ;
 
 commands:
-  commands command                                            { $1->push_back($2); $$ = $1;  }
-| command                                                     { 
-                                                                TCommandBlock* block = new TCommandBlock();
-                                                                block->push_back($1); $$ = block;
-                                                              }
+  commands command                                            { $1->add_command($2); $$ = $1; }
+| command                                                     { $$ = new TCommandBlock($1);   }
 ;
 
 command:

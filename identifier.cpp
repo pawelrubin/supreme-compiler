@@ -8,7 +8,7 @@ void TIdentifier::load_value_to_register(Register reg) {
 }
 
 
-TVariableIdentifier::TVariableIdentifier(ident var_name) {
+TVariableIdentifier::TVariableIdentifier(ident var_name) : TIdentifier(var_name) {
   if (data->is_declared(var_name)) {
     this->variable = static_cast<Variable *>(data->get_symbol(var_name));
   } else {
@@ -43,7 +43,7 @@ void TVariableIdentifier::negate(bool is_loaded) {
 }
 
 
-TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) {
+TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) : TIdentifier(arr_name + var_name) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   if (data->is_declared(var_name)) {
     this->variable = static_cast<Variable *>(data->get_symbol(var_name));
@@ -77,7 +77,7 @@ void TArrayVariableIdentifier::negate(bool is_loaded) {
 }
 
 
-TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) {
+TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) : TIdentifier(arr_name) {
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   this->num_value = num_value;
 }

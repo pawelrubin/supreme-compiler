@@ -26,8 +26,46 @@ TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOpera
 }
 
 void TBinaryExpression::load_expr(TIdentifier* result) {
-  // TODO: load_expr should have identifier as a parameter to use it as result register
-  //
+
+  if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
+    integer num = rv->get_value();
+    if (num < llabs(10)) {
+      if (IdentifierValue* ival = dynamic_cast<IdentifierValue*>(lvalue) ) {
+        if (ival->get_identifier()->get_name() == result->get_name()) {
+          ident id = result->get_name();
+          std::cerr << " X ASSIGN X EXPRESSION n: " << id << " ASSIGN " << id << " op " << std::to_string(num) << std::endl;
+          if (TArrayVariableIdentifier* avid = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+            avid->load_addr_to_register(Register::IDR);
+          }
+          switch (this->op) {
+          case BinaryOperator::PLUS:
+            result->load_value_to_acc();
+            for (int i = 0; i < num; i++) {
+              code->inc();
+            }
+            if (TArrayVariableIdentifier* avid = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              code->storei(data->get_register(Register::IDR));
+            } else {
+              code->store(result->get_addr());
+            }
+            return;
+          case BinaryOperator::MINUS:
+            result->load_value_to_acc();
+            for (int i = 0; i < num; i++) {
+              code->dec();
+            }
+            if (TArrayVariableIdentifier* avid = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              code->storei(data->get_register(Register::IDR));
+            } else {
+              code->store(result->get_addr());
+            }
+            return;
+          }
+        }
+      } 
+    }    
+  }
+
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
     id->load_addr_to_register(Register::IDR1);
   }
@@ -60,7 +98,6 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
       id->load_addr_to_register(Register::IDR1);
       this->times(data->get_register(Register::IDR1));
     } else {
-      std::cout << "direct" << std::endl;
       this->times(result->get_addr());
     }
     break;
@@ -222,12 +259,13 @@ void TBinaryExpression::times(integer identifier_address) {
 // while (a != 0) {
   lid->load_value_to_acc();
   // if (a & 1) {
-    integer j = code->jzero();
+  integer j = code->jzero();
     code->parity_test(lid);
-    code->jzero(4);
+    integer k = code->jzero();
       code->load(addr_for_result);
       code->add(rid->get_addr());
       code->store(addr_for_result); // result += b
+    code->insert_jump_address(k);
   // }
     rid->load_value_to_acc();
     code->lshift();
@@ -236,15 +274,16 @@ void TBinaryExpression::times(integer identifier_address) {
     code->rshift();
     code->store(lid->get_addr());                   // b <<= 1
     code->jump(j);
-  code->insert_jump_address(j, code->get_instruction_count());
+  code->insert_jump_address(j);
 // }
 // if (sign_bit) {
   code->load(data->get_register(Register::D));
-  code->jzero(5); 
+  j = code->jzero(); 
     code->load(addr_for_result);
     code->sub(addr_for_result);
     code->sub(addr_for_result);
     code->store(addr_for_result);   // result *= -1
+  code->insert_jump_address(j);
 // }
   if (addr_for_result == data->get_register(Register::A)) {
     code->load(data->get_register(Register::A));

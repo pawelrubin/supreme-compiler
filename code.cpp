@@ -95,17 +95,15 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
   reset_acc(); 
   store(data->get_register(Register::D));
   lid->load_value_to_acc();
-  integer j = instruction_count;
-  jpos();
+  integer j = jpos();
     lid->negate(true);
     reset_acc();
     inc();
     store(data->get_register(Register::D));
-  insert_jump_address(j, instruction_count);
+  insert_jump_address(j);
 
   rid->load_value_to_acc();
-  j = instruction_count;
-  jpos();
+  j = jpos();
     rid->negate(true);
     load(data->get_register(Register::D));
     jzero(3);
@@ -113,7 +111,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
       jump(instruction_count + 2);
     inc();
     store(data->get_register(Register::D));
-  insert_jump_address(j, instruction_count);
+  insert_jump_address(j);
 }
 
 /*
