@@ -78,6 +78,9 @@ class Data {
 
     Variable* declare_bad_variable(ident);
 
+
+    void inc_iterator_count() {iterators_count++;}
+
     void del_iterator(ident);
     void print_symbols();
     Symbol* get_symbol(ident);

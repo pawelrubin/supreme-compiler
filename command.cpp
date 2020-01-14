@@ -39,13 +39,16 @@ void TForToCommand::load_command(){
     integer iterations = end->get_value() - start->get_value() + 1;
 
     start->load_value();
-    code->store(it->get_addr());     // it     <- a
+    code->store(it->get_addr());
+    for (int i = 1; i < iterations; i++) {
+      code->inc();
+      code->store(it->get_addr() + i);
+      data->inc_iterator_count();
+    }
 
     for (int i = 0; i < iterations; i++) {
       for_block->load_commands();
-      code->load(it->get_addr());
-      code->inc();
-      code->store(it->get_addr());
+      it->set_addr(it->get_addr() + 1);
     }
   } else {
     end->load_value();
@@ -75,12 +78,15 @@ void TForDownToCommand::load_command() {
 
     start->load_value();
     code->store(it->get_addr());     // it     <- a
+    for (int i = 1; i < iterations; i++) {
+      code->dec();
+      code->store(it->get_addr() + i);
+      data->inc_iterator_count();
+    }
 
     for (int i = 0; i < iterations; i++) {
       for_block->load_commands();
-      code->load(it->get_addr());
-      code->dec();
-      code->store(it->get_addr());
+      it->set_addr(it->get_addr() + 1);
     }
   } else {
     end->load_value();
@@ -129,7 +135,7 @@ void TIfElseCommand::load_command() {
 
 TWriteCommand::TWriteCommand(TValue* value) {
   this->value = value;
-}
+}   
 
 void TWriteCommand::load_command() {
   this->value->load_value(); // ACC = value.value
