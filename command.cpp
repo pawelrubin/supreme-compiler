@@ -25,48 +25,79 @@ void TDoWhileCommand::load_command() {
 void TForToCommand::load_command(){
   Variable* it = data->new_iterator(this->pidentifier);
 
-  end->load_value();
-  code->store(it->get_addr() + 1); // it_end <- b
-  start->load_value();
-  code->store(it->get_addr());     // it     <- a
+  if (dynamic_cast<NumberValue*>(start) and dynamic_cast<NumberValue*>(end)) {
+    integer iterations = end->get_value() - start->get_value() + 1;
 
-  integer s = code->get_instruction_count(); // s «═════ ╗
-    code->sub(it->get_addr() + 1); // sub it_end         ║
-    integer e = code->jpos();      // jpos e             ║             
-    for (const auto &command : *this->for_block) {    // ║
-      command->load_command();     //                    ║
-    }                              //                    ║
-    code->load(it->get_addr());    // load it            ║
-    code->inc();                   // inc                ║
-    code->store(it->get_addr());   // store it           ║
-    code->jump(s);                 // jump s  ═══════════╝
-  code->insert_jump_address(e);    // e
+    start->load_value();
+    code->store(it->get_addr());     // it     <- a
 
-  data->del_iterator(this->pidentifier);
+    for (int i = 0; i < iterations; i++) {
+      for (const auto &command : *this->for_block) {
+        command->load_command();
+      }
+      code->load(it->get_addr());
+      code->inc();
+      code->store(it->get_addr());
+    }
+  } else {
+    end->load_value();
+    code->store(it->get_addr() + 1); // it_end <- b
+    start->load_value();
+    code->store(it->get_addr());     // it     <- a
+
+    integer s = code->get_instruction_count(); // s «═════ ╗
+      code->sub(it->get_addr() + 1); // sub it_end         ║
+      integer e = code->jpos();      // jpos e             ║             
+      for (const auto &command : *this->for_block) {    // ║
+        command->load_command();     //                    ║
+      }                              //                    ║
+      code->load(it->get_addr());    // load it            ║
+      code->inc();                   // inc                ║
+      code->store(it->get_addr());   // store it           ║
+      code->jump(s);                 // jump s  ═══════════╝
+    code->insert_jump_address(e);    // e
+
+    data->del_iterator(this->pidentifier);
+  }  
 }
 
 void TForDownToCommand::load_command() {
-  std::cerr<<"XD"<<std::endl;
   Variable* it = data->new_iterator(this->pidentifier);
 
-  end->load_value();
-  code->store(it->get_addr() + 1); // it_end <- b
-  start->load_value();
-  code->store(it->get_addr());     // it     <- a
+  if (dynamic_cast<NumberValue*>(start) and dynamic_cast<NumberValue*>(end)) {
+    integer iterations = start->get_value() - end->get_value() + 1;
 
-  integer s = code->get_instruction_count(); // s «═════ ╗
-    code->sub(it->get_addr() + 1); // sub it_end         ║
-    integer e = code->jneg();      // jpos e             ║
-    for (const auto &command : *this->for_block) {    // ║
-      command->load_command();     //                    ║
-    }                              //                    ║
-    code->load(it->get_addr());    // load it            ║
-    code->dec();                   // inc                ║
-    code->store(it->get_addr());   // store it           ║
-    code->jump(s);                 // jump s  ═══════════╝
-  code->insert_jump_address(e);    // e
+    start->load_value();
+    code->store(it->get_addr());     // it     <- a
 
-  data->del_iterator(this->pidentifier);
+    for (int i = 0; i < iterations; i++) {
+      for (const auto &command : *this->for_block) {
+        command->load_command();
+      }
+      code->load(it->get_addr());
+      code->dec();
+      code->store(it->get_addr());
+    }
+  } else {
+    end->load_value();
+    code->store(it->get_addr() + 1); // it_end <- b
+    start->load_value();
+    code->store(it->get_addr());     // it     <- a
+
+    integer s = code->get_instruction_count(); // s «═════ ╗
+      code->sub(it->get_addr() + 1); // sub it_end         ║
+      integer e = code->jneg();      // jpos e             ║
+      for (const auto &command : *this->for_block) {    // ║
+        command->load_command();     //                    ║
+      }                              //                    ║
+      code->load(it->get_addr());    // load it            ║
+      code->dec();                   // inc                ║
+      code->store(it->get_addr());   // store it           ║
+      code->jump(s);                 // jump s  ═══════════╝
+    code->insert_jump_address(e);    // e
+
+    data->del_iterator(this->pidentifier);
+  }
 }
 
 TIfCommand::TIfCommand(TCondition* condition, TCommandBlock* if_block) {
