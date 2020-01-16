@@ -47,9 +47,9 @@ void Data::declare_array(ident id, integer start, integer end) {
 
 Variable* Data::new_iterator(ident iterator) {
   if (!is_declared(iterator)) {
-    this->symbols[iterator] = new Variable(get_register(Register::Count) + iterators_count);
+    this->symbols[iterator] = new Variable(memory_offset + iterators_count);
   } else {
-    this->symbols[iterator]->set_addr(get_register(Register::Count) + iterators_count);
+    this->symbols[iterator]->set_addr(memory_offset + iterators_count);
   }
   iterators_count += 2; // end value stored next to iterator
   return static_cast<Variable*>(this->symbols[iterator]);
@@ -72,7 +72,8 @@ Symbol* Data::get_symbol(ident id) {
 }
 
 integer Data::get_register(Register reg) { // TODO rename
-  return memory_offset + integer(reg) + 1;
+  return integer(reg) + 4;
+  // return memory_offset + integer(reg) + 1;
 }
 
 Variable* Data::declare_bad_variable(ident id) {

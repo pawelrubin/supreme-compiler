@@ -22,6 +22,10 @@ class Code {
 
     integer get_instruction_count();
 
+
+    bool is_power_of_two(integer);
+
+
     void insert_jump_address(integer, integer);
     void insert_jump_address(integer);
 

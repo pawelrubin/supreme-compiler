@@ -258,3 +258,7 @@ void Code::insert_to_acc(integer value) {
 void Code::reset_acc() {
   this->sub(0);
 }
+
+bool Code::is_power_of_two(integer n) {
+  return (n & (n - 1)) == 0;
+}

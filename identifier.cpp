@@ -34,10 +34,7 @@ void TVariableIdentifier::load_value_to_acc() {
 }
 
 void TVariableIdentifier::negate(bool is_loaded) {
-  if (!is_loaded) {
-    this->load_value_to_acc();
-  }
-  code->sub(this->get_addr());
+  code->reset_acc();
   code->sub(this->get_addr());
   code->store(this->get_addr());
 }

@@ -9,6 +9,7 @@
 enum class Register {
   IDR,
   IDR1,
+  IDR2,
   VLR,
   A,
   B,
@@ -62,7 +63,8 @@ class Data {
   // TODO: remember what is currently loaded
 
   private:
-    integer memory_offset = 3; // ACC
+    integer memory_offset = 3 + int(Register::Count) + 2; // ACC
+    // integer memory_offset = 3; // ACC
     std::unordered_map<ident, Symbol*> symbols;
 
     integer iterators_count = 0;
