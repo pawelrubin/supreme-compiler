@@ -69,9 +69,8 @@ void TArrayVariableIdentifier::negate(bool is_loaded) {
     code->insert_to_acc(this->array->get_norm_addr());
     code->add(this->variable->get_addr());
     code->store(data->get_register(Register::IDR));
-    code->loadi(0);
   }
-  code->sub(data->get_register(Register::IDR));
+  code->reset_acc();
   code->sub(data->get_register(Register::IDR));
   code->store(data->get_register(Register::IDR));
 }
@@ -96,10 +95,7 @@ void TArrayNumIdentifier::load_value_to_acc() {
 }
 
 void TArrayNumIdentifier::negate(bool is_loaded) {
-  if (!is_loaded) {
-    this->load_value_to_acc();
-  }
-  code->sub(this->get_addr());
+  code->reset_acc();
   code->sub(this->get_addr());
   code->store(this->get_addr());
 }
