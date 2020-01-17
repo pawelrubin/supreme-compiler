@@ -96,7 +96,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
   store(data->get_register(Register::D));
   lid->load_value_to_acc();
   integer j = jpos();
-    lid->negate(true);
+    lid->negate();
     reset_acc();
     inc();
     store(data->get_register(Register::D));
@@ -104,7 +104,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
 
   rid->load_value_to_acc();
   j = jpos();
-    rid->negate(true);
+    rid->negate();
     load(data->get_register(Register::D));
     jzero(3);
       dec();

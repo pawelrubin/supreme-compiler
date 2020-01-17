@@ -311,7 +311,7 @@ class TIdentifier {
     virtual void load_value_to_register(Register); // stores identifier value in IDR
     virtual void load_value_to_acc() {}
     virtual integer get_addr() { return 0; }
-    virtual void negate(bool) {}
+    virtual void negate() {}
     virtual ident get_name() { return name; }
 };
 
@@ -325,7 +325,7 @@ class TVariableIdentifier : public TIdentifier {
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
     integer get_addr();
-    void negate(bool) override;
+    void negate() override;
 };
 
 class TArrayVariableIdentifier : public TIdentifier {
@@ -338,7 +338,7 @@ class TArrayVariableIdentifier : public TIdentifier {
     TArrayVariableIdentifier(ident, ident);
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
-    void negate(bool) override;
+    void negate() override;
 };
 
 class TArrayNumIdentifier : public TIdentifier {
@@ -351,5 +351,5 @@ class TArrayNumIdentifier : public TIdentifier {
     void load_addr_to_register(Register) override;
     void load_value_to_acc() override;
     integer get_addr();
-    void negate(bool) override;
+    void negate() override;
 };
