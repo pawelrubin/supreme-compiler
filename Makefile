@@ -4,15 +4,16 @@ FLAGS = -std=c++17 --pedantic -Wextra -Wall
 all: compiler
 
 compiler: parser lexer data code types
-	g++ $(FLAGS) -o compiler parser.o lexer.o data.o code.o program.o command.o condition.o expression.o value.o identifier.o
+	g++ $(FLAGS) -o compiler parser.o lexer.o data.o code.o program.o command.o condition.o expression.o value.o identifier.o instruction.o
 
-types: program.cpp command.cpp condition.cpp expression.cpp value.cpp identifier.cpp
+types: program.cpp command.cpp condition.cpp expression.cpp value.cpp identifier.cpp instruction.cpp
 	g++ $(FLAGS) -c program.cpp -o program.o
 	g++ $(FLAGS) -c command.cpp -o command.o
 	g++ $(FLAGS) -c condition.cpp -o condition.o
 	g++ $(FLAGS) -c expression.cpp -o expression.o
 	g++ $(FLAGS) -c value.cpp -o value.o
 	g++ $(FLAGS) -c identifier.cpp -o identifier.o
+	g++ $(FLAGS) -c instruction.cpp -o instruction.o
 
 code: code.cpp
 	g++ $(FLAGS) -c code.cpp -o code.o
