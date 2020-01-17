@@ -1,11 +1,7 @@
 #include "types.hpp"
 #include "code.hpp"
 
-NumberValue::NumberValue(integer value) {
-  this->value = value;
-}
-
-integer TValue::get_value() {
+integer NumberValue::get_value() {
   return this->value;
 }
 

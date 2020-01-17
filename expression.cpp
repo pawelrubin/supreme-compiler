@@ -4,12 +4,8 @@
 #include <math.h>
 #include <iostream>
 
-TValueExpression::TValueExpression(TValue *value) {
-  this->value = value;
-}
-
 void TValueExpression::load_expr(TIdentifier* result) {
-  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+  if (auto id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
     id->load_addr_to_register(Register::IDR1);
     this->value->load_value();
     code->storei(data->get_register(Register::IDR1));
@@ -19,15 +15,7 @@ void TValueExpression::load_expr(TIdentifier* result) {
   }
 }
 
-TBinaryExpression::TBinaryExpression(TValue *lvalue, TValue *rvalue, BinaryOperator op) {
-  this->lvalue = lvalue;
-  this->rvalue = rvalue;
-  this->op = op;
-}
-
 void TBinaryExpression::load_expr(TIdentifier* result) {
-
-
   // y = x OP x 
   if (auto lid = dynamic_cast<IdentifierValue*>(lvalue)) {
     if (auto rid = dynamic_cast<IdentifierValue*>(rvalue)) {
@@ -103,7 +91,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
 
         switch (this->op) {
           case BinaryOperator::PLUS:
-            lid->load_value_to_acc();
+            lid->load();
             for (int i = 0; i < num; i++) {
               code->inc();
             }
@@ -114,7 +102,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
             }
             return;
           case BinaryOperator::MINUS:
-            lid->load_value_to_acc();
+            lid->load();
             for (int i = 0; i < num; i++) {
               code->dec();
             }
@@ -126,7 +114,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
             return; 
           case BinaryOperator::TIMES:
             if (code->is_power_of_two(num)) {
-              lid->load_value_to_acc();
+              lid->load();
               while (num > 1) {
                 code->lshift();
                 num /= 2;
@@ -140,7 +128,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
             return;
           case BinaryOperator::DIV:
             if (num == 2) {
-              lid->load_value_to_acc();
+              lid->load();
               integer j = code->jpos();
                 code->reset_acc();
                 if (dynamic_cast<TArrayVariableIdentifier*>(lid)) {
@@ -187,11 +175,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
       }
     }
   }
-
-  if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-    id->load_addr_to_register(Register::IDR1);
-  }
-
+  
   switch (this->op) {
   case BinaryOperator::PLUS:
     if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
@@ -264,7 +248,7 @@ void TBinaryExpression::plus() { // TODO refactor
       TIdentifier *lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
       if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         rv->insert_to_VLR();                  // VLR = rval
-        avid->load_value_to_acc();            // ACC = lval
+        avid->load();            // ACC = lval
         code->add(data->get_register(Register::VLR));           // ACC = lval + rval           
       } else {
         code->insert_to_acc(rv->get_value()); // ACC = rval
@@ -277,15 +261,15 @@ void TBinaryExpression::plus() { // TODO refactor
       if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {      
           ravid->load_value_to_register(Register::IDR); // IDR = rval
-          lavid->load_value_to_acc(); // ACC = lval
+          lavid->load(); // ACC = lval
           code->add(data->get_register(Register::IDR)); // ACC = lval + IDR = lval + rval
         } else {
-          lavid->load_value_to_acc(); // ACC = lval
+          lavid->load(); // ACC = lval
           code->add(rid->get_addr()); // ACC = lval + rval
         }
       } else {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-          ravid->load_value_to_acc(); // ACC = rval
+          ravid->load(); // ACC = rval
           code->add(lid->get_addr()); // ACC = rval + lval
         } else { 
           code->load(lid->get_addr()); // ACC = lval 
@@ -316,12 +300,12 @@ void TBinaryExpression::minus() { // TODO refactor
       TIdentifier *lid = static_cast<IdentifierValue*>(lvalue)->get_identifier();
       if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         rv->insert_to_VLR();                  // VLR = rval
-        avid->load_value_to_acc();            // ACC = lval
+        avid->load();            // ACC = lval
         code->sub(data->get_register(Register::VLR));           // ACC = lval - rval           
       } else {
         code->insert_to_acc(rv->get_value()); // ACC = rval
         code->store(data->get_register(Register::VLR));         // VLR = rval
-        lid->load_value_to_acc();             // ACC = lval
+        lid->load();             // ACC = lval
         code->sub(data->get_register(Register::VLR));           // ACC = lval - rval
       }
     } else {
@@ -331,17 +315,17 @@ void TBinaryExpression::minus() { // TODO refactor
       if (TArrayVariableIdentifier *lavid = dynamic_cast<TArrayVariableIdentifier*>(lid)) {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {      
           ravid->load_value_to_register(Register::IDR);    // IDR = rval
-          lavid->load_value_to_acc();    // ACC = lval
+          lavid->load();    // ACC = lval
           code->sub(data->get_register(Register::IDR));    // ACC = lval - IDR = lval - rval
         } else {
-          lavid->load_value_to_acc();    // ACC = lval
+          lavid->load();    // ACC = lval
           code->sub(rid->get_addr());    // ACC = lval - rval
         }
       } else {
         if (TArrayVariableIdentifier *ravid = dynamic_cast<TArrayVariableIdentifier*>(rid)) {
-          ravid->load_value_to_acc();   // ACC = rval
+          ravid->load();   // ACC = rval
           code->store(data->get_register(Register::VLR)); // VLR = rval
-          lid->load_value_to_acc();     // ACC = lval
+          lid->load();     // ACC = lval
           code->sub(data->get_register(Register::VLR));   // ACC = lval - VLR = lval - rval
         } else { 
           code->load(lid->get_addr()); // ACC = lval 
@@ -379,7 +363,7 @@ void TBinaryExpression::times(integer identifier_address) {
   }
   code->store(addr_for_result);
 // while (a != 0) {
-  lid->load_value_to_acc();
+  lid->load();
   // if (a & 1) {
   integer j = code->jzero();
     code->parity_test(lid);
@@ -389,10 +373,10 @@ void TBinaryExpression::times(integer identifier_address) {
       code->store(addr_for_result); // result += b
     code->insert_jump_address(k);
   // }
-    rid->load_value_to_acc();
+    rid->load();
     code->lshift();
     code->store(rid->get_addr());                   // a >>= 1
-    lid->load_value_to_acc();
+    lid->load();
     code->rshift();
     code->store(lid->get_addr());                   // b <<= 1
     code->jump(j);
@@ -433,7 +417,7 @@ void TBinaryExpression::div(integer identifier_address) {
   TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
 // if (divisor != 0) {
-  rid->load_value_to_acc();
+  rid->load();
   integer j = code->jzero();
     
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
@@ -447,12 +431,12 @@ void TBinaryExpression::div(integer identifier_address) {
     code->inc();
     code->store(data->get_register(Register::E));   // multiple = 1
   // while (scaled_divisor < dividend) {
-    lid->load_value_to_acc(); 
+    lid->load(); 
     code->store(data->get_register(Register::F));   // remain = dividend
     code->sub(rid->get_addr());
     integer k = code->jneg();
     code->jzero();                            // while scaled_divisor < dividend
-      rid->load_value_to_acc();
+      rid->load();
       code->lshift();
       code->store(rid->get_addr());                 // scaled_divisor *= 2
       
@@ -460,7 +444,7 @@ void TBinaryExpression::div(integer identifier_address) {
       code->lshift();
       code->store(data->get_register(Register::E)); // multiple *= 2
 
-      lid->load_value_to_acc();
+      lid->load();
       code->sub(rid->get_addr());
       code->jump(k);
     code->insert_jump_address(k);
@@ -552,7 +536,7 @@ void TBinaryExpression::mod(integer identifier_address) {
   }
 
 // if (divisor != 0) {
-  rid->load_value_to_acc();
+  rid->load();
   integer j = code->jzero();
     
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
@@ -562,12 +546,12 @@ void TBinaryExpression::mod(integer identifier_address) {
     code->inc();
     code->store(data->get_register(Register::E));   // multiple = 1
   // while (scaled_divisor < dividend) {
-    lid->load_value_to_acc(); 
+    lid->load(); 
     code->store(addr_for_result);   // remain = dividend
     code->sub(rid->get_addr());
     integer k = code->jneg();
     code->jzero();                            // while scaled_divisor < dividend
-      rid->load_value_to_acc();
+      rid->load();
       code->lshift();
       code->store(rid->get_addr());                 // scaled_divisor *= 2
       
@@ -575,7 +559,7 @@ void TBinaryExpression::mod(integer identifier_address) {
       code->lshift();
       code->store(data->get_register(Register::E)); // multiple *= 2
 
-      lid->load_value_to_acc();
+      lid->load();
       code->sub(rid->get_addr());
       code->jump(k);
     code->insert_jump_address(k);

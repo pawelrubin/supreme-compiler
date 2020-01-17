@@ -10,10 +10,6 @@
  **********************
  */
 
-Symbol::Symbol(integer addr) {
-  this->addr = addr;
-}
-
 integer Symbol::get_addr() {
   return this->addr;
 }
@@ -73,7 +69,6 @@ Symbol* Data::get_symbol(ident id) {
 
 integer Data::get_register(Register reg) { // TODO rename
   return integer(reg) + 4;
-  // return memory_offset + integer(reg) + 1;
 }
 
 Variable* Data::declare_bad_variable(ident id) {
@@ -87,11 +82,6 @@ Variable* Data::declare_bad_variable(ident id) {
  *        ARRAY       * 
  **********************
  */
-
-Array::Array(integer addr, integer start, integer end) : Symbol(addr) {
-  this->start = start;
-  this->end = end;
-}
 
 integer Array::get_addr(integer index) {
   return this->get_addr() - this->start + index;

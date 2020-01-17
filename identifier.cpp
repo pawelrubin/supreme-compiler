@@ -3,7 +3,7 @@
 
 
 void TIdentifier::load_value_to_register(Register reg) {
-  this->load_value_to_acc();
+  this->load();
   code->store(data->get_register(reg));
 }
 
@@ -16,10 +16,6 @@ TVariableIdentifier::TVariableIdentifier(ident var_name) : TIdentifier(var_name)
   }
 }
 
-TVariableIdentifier::TVariableIdentifier(Variable *pseudo) {
-  this->variable = pseudo;
-}
-
 void TVariableIdentifier::load_addr_to_register(Register reg) {
   code->insert_to_acc(this->variable->get_addr());
   code->store(data->get_register(reg));
@@ -29,7 +25,7 @@ integer TVariableIdentifier::get_addr() {
   return this->variable->get_addr();
 }
 
-void TVariableIdentifier::load_value_to_acc() {
+void TVariableIdentifier::load() {
   code->load(this->variable->get_addr());
 }
 
@@ -55,7 +51,7 @@ void TArrayVariableIdentifier::load_addr_to_register(Register reg) {
   code->store(data->get_register(reg));
 }
 
-void TArrayVariableIdentifier::load_value_to_acc() {
+void TArrayVariableIdentifier::load() {
   code->insert_to_acc(this->array->get_norm_addr());
   code->add(this->variable->get_addr());
   code->loadi(0);
@@ -82,7 +78,7 @@ integer TArrayNumIdentifier::get_addr() {
   return this->array->get_addr(this->num_value);
 }
 
-void TArrayNumIdentifier::load_value_to_acc() {
+void TArrayNumIdentifier::load() {
   code->load(this->array->get_addr(this->num_value));
 }
 

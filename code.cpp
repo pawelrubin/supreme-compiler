@@ -77,7 +77,7 @@ void Code::parity_test(TIdentifier* id) {
     avid->load_value_to_register(Register::IDR);
     id = new TVariableIdentifier(new Variable(data->get_register(Register::IDR)));
   }
-  id->load_value_to_acc();
+  id->load();
   rshift();
   lshift();
   sub(id->get_addr());
@@ -94,7 +94,7 @@ void Code::rshift() {
 void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
   reset_acc(); 
   store(data->get_register(Register::D));
-  lid->load_value_to_acc();
+  lid->load();
   integer j = jpos();
     lid->negate();
     reset_acc();
@@ -102,7 +102,7 @@ void Code::set_sign_bit(TIdentifier* lid, TIdentifier* rid) {
     store(data->get_register(Register::D));
   insert_jump_address(j);
 
-  rid->load_value_to_acc();
+  rid->load();
   j = jpos();
     rid->negate();
     load(data->get_register(Register::D));

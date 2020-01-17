@@ -3,10 +3,6 @@
 
 #include <iostream>
 
-TProgram::TProgram(TCommandBlock* commands) {
-  this->commands = commands;
-}
-
 void TProgram::load_program() {
   code->start_code();
   commands->load_commands();

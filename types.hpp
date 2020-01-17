@@ -37,15 +37,13 @@ enum class ConditionOperator {
 
 typedef std::vector<TCommand*> commandList;
 // typedef std::vector<TDeclaration*> TDeclarationBlock;
-// TODO refactor constructors
-
 
 class TProgram {
   protected:
     TCommandBlock* commands;
 
   public:
-    TProgram(TCommandBlock*);
+    TProgram(TCommandBlock* cb) : commands(cb) {}
     virtual void load_program();
 };
 
@@ -104,7 +102,8 @@ class TAssignCommand : public TCommand {
     TExpression* expression;
 
   public:
-    TAssignCommand(TIdentifier*, TExpression*);
+    TAssignCommand(TIdentifier* id, TExpression* ex)
+      : identifier(id), expression(ex) {}
     void load_command() override;
 };
 
@@ -114,7 +113,8 @@ class TIfCommand : public TCommand {
     TCommandBlock* if_block;
     
   public:
-    TIfCommand(TCondition*, TCommandBlock*);
+    TIfCommand(TCondition* c, TCommandBlock* ib)
+     : condition(c), if_block(ib) {} 
     void load_command() override;
 };
 
@@ -123,7 +123,8 @@ class TIfElseCommand : public TIfCommand {
     TCommandBlock* else_block;
 
   public:
-    TIfElseCommand(TCondition*, TCommandBlock*, TCommandBlock*);
+    TIfElseCommand(TCondition* c, TCommandBlock* ib, TCommandBlock* eb)
+      : TIfCommand(c, ib), else_block(eb) {} 
     void load_command() override;
 };
 
@@ -178,7 +179,7 @@ class TReadCommand : public TCommand {
     TIdentifier* identifier;
 
   public:
-    TReadCommand(TIdentifier*);
+    TReadCommand(TIdentifier* id) : identifier(id) {}
     void load_command() override;
 };
 
@@ -187,7 +188,7 @@ class TWriteCommand : public TCommand {
     TValue* value;
 
   public:
-    TWriteCommand(TValue*);
+    TWriteCommand(TValue* v) : value(v) {}
     void load_command() override;
 };
 
@@ -216,7 +217,8 @@ class TCondition {
     integer get_jump_address();
     integer get_cond_address();
     void load_condition();
-    TCondition(TValue*, TValue*, ConditionOperator);
+    TCondition(TValue* lv, TValue* rv, ConditionOperator o)
+      : lvalue(lv), rvalue(rv), op(o) {}
 };
 
 /*
@@ -235,7 +237,7 @@ class TValueExpression : public TExpression {
     TValue *value;
 
   public:
-    TValueExpression(TValue*);
+    TValueExpression(TValue* v) : value(v) {}
     void load_expr(TIdentifier*) override;
 };
 
@@ -251,7 +253,8 @@ class TBinaryExpression : public TExpression {
     void mod(integer addr_for_result);
 
   public:
-    TBinaryExpression(TValue*, TValue*, BinaryOperator);
+    TBinaryExpression(TValue* lv, TValue* rv, BinaryOperator o)
+      : lvalue(lv), rvalue(rv), op(o) {}
     void load_expr(TIdentifier*) override;
 };
 
@@ -264,22 +267,22 @@ class TBinaryExpression : public TExpression {
  */
 
 class TValue {
-  protected:
-    integer value;
-
   public:
-    integer get_value();
     virtual void load_value() {}; // loads variable value to ACC
     virtual void insert_to_VLR() {}; // loads variable value to VLR
     virtual void store_in_register(Register) {};
 };
 
 class NumberValue : public TValue {
+  private:
+    integer value;
+
   public:
-    NumberValue(integer);
+    NumberValue(integer v) : value(v) {}
     void load_value() override;
     void insert_to_VLR() override;
     void store_in_register(Register) override;
+    integer get_value();
 };
 
 class IdentifierValue : public TValue {
@@ -308,10 +311,10 @@ class TIdentifier {
     TIdentifier() = default;
     TIdentifier(ident n) : name(n) {}
     virtual void load_addr_to_register(Register) {} // stores identifier jump_address in IDR
-    virtual void load_value_to_register(Register); // stores identifier value in IDR
-    virtual void load_value_to_acc() {}
-    virtual integer get_addr() { return 0; }
+    virtual void load_value_to_register(Register);  // stores identifier value in IDR
+    virtual void load() {}
     virtual void negate() {}
+    virtual integer get_addr() { return 0; }
     virtual ident get_name() { return name; }
 };
 
@@ -321,9 +324,9 @@ class TVariableIdentifier : public TIdentifier {
 
   public:
     TVariableIdentifier(ident);
-    TVariableIdentifier(Variable*);
+    TVariableIdentifier(Variable* v) : variable(v) {}
     void load_addr_to_register(Register) override;
-    void load_value_to_acc() override;
+    void load() override;
     integer get_addr();
     void negate() override;
 };
@@ -337,7 +340,7 @@ class TArrayVariableIdentifier : public TIdentifier {
     using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident, ident);
     void load_addr_to_register(Register) override;
-    void load_value_to_acc() override;
+    void load() override;
     void negate() override;
 };
 
@@ -349,7 +352,7 @@ class TArrayNumIdentifier : public TIdentifier {
   public:
     TArrayNumIdentifier(ident, integer);
     void load_addr_to_register(Register) override;
-    void load_value_to_acc() override;
+    void load() override;
     integer get_addr();
     void negate() override;
 };

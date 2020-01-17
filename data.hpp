@@ -26,7 +26,7 @@ class Symbol {
     integer addr;
 
   public:
-    explicit Symbol(integer addr);
+    explicit Symbol(integer a) : addr(a) {}
     Symbol() = default;
     virtual integer get_addr();
     void set_addr(integer a) {this->addr = a;}; 
@@ -46,14 +46,15 @@ class Array : public Symbol {
 
   public:
     using Symbol::get_addr;
-    Array(integer, integer, integer);
+    Array(integer a, integer s, integer e)
+      : Symbol(a), start(s), end(e) {}
     integer get_addr(integer);
     integer get_norm_addr();
 };
 
 /**
  * 
- * Virtual machine memory: [ACC, LSHIFT, RSHIFT, Symbols..., IDR, IDR1, VLR, A, B, ...]
+ * Virtual machine memory: [ACC, LSHIFT, RSHIFT, Registers, Symbols, Iterators stack]
  *
  **/
 class Data {
@@ -63,12 +64,9 @@ class Data {
   // TODO: remember what is currently loaded
 
   private:
-    integer memory_offset = 3 + int(Register::Count) + 2; // ACC
-    // integer memory_offset = 3; // ACC
+    integer memory_offset = 3 + int(Register::Count) + 2;
     std::unordered_map<ident, Symbol*> symbols;
-
     integer iterators_count = 0;
-
     void update_offset(integer);
 
   public:
@@ -77,12 +75,8 @@ class Data {
     void declare_variable(ident);
     void declare_array(ident, integer, integer);
     Variable* new_iterator(ident);
-
     Variable* declare_bad_variable(ident);
-
-
     void inc_iterator_count() {iterators_count++;}
-
     void del_iterator(ident);
     void print_symbols();
     Symbol* get_symbol(ident);

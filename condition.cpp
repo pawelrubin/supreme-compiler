@@ -1,12 +1,6 @@
 #include "types.hpp"
 #include "code.hpp"
 
-TCondition::TCondition(TValue* lvalue, TValue* rvalue, ConditionOperator op) {
-  this->lvalue = lvalue;
-  this->rvalue = rvalue;
-  this->op = op;
-}
-
 integer TCondition::get_jump_address() {
   return this->jump_address;
 }
@@ -37,8 +31,6 @@ void TCondition::load_condition() {
     break;
   case ConditionOperator::GEQ:
     this->geq();
-    break;
-  default:
     break;
   }
 }

@@ -7,24 +7,16 @@
 #include <string>
 
 class Code {
-
-  // IDEA methods should return number of instructions performed
   // IDEA indent output code
-
-  // IDEA remember last instruction for peephole optimization -> if last instruction was store x then dont call load x or loadi x
-
+  // TODO instructions as list of objects
   private:
     codeList code;
     integer instruction_count = 0;
     void update_offset(long long);
     
   public:
-
     integer get_instruction_count();
-
-
     bool is_power_of_two(integer);
-
 
     void insert_jump_address(integer, integer);
     void insert_jump_address(integer);
