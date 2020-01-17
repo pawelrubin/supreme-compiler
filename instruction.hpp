@@ -3,24 +3,21 @@
 #include "typedefs.hpp"
 
 #include <string>
+#include <vector>
 
-enum class Atomic {
-  GET,
-  PUT,
-  LOAD,
-  STORE,
-  LOADI,
-  STOREI,
-  ADD,
-  SUB,
-  SHIFT,
-  INC,
-  DEC,
-  JUMP,
-  JPOS,
-  JZERO,
-  JNEQ,
-  HALT
+class Instruction;
+class Assembler;
+
+typedef std::vector<Instruction*> InstructionList;
+
+class Assembler {
+private:
+  InstructionList instructions;
+
+public:
+  Assembler& push(Instruction*);
+  Assembler& append(InstructionList);
+  codeList generateCode();
 };
 
 class Instruction {
@@ -49,10 +46,11 @@ public:
 
 class JumpInstruction : public Instruction {
 private:
-  Instruction* destination;
+  Instruction* jump_destination;
 public:
-  JumpInstruction(Instruction* d) : destination(d) {}
+  JumpInstruction() = default;
   std::string assembly() override;
+  void set_jump_destination(Instruction*);
 };
 
 class Get : public SimpleInstruction {
@@ -141,28 +139,28 @@ public:
 
 class Jump : public JumpInstruction {
 public:
-  Jump(Instruction* i) : JumpInstruction(i) {
+  Jump() : JumpInstruction() {
     this->code = "JUMP";
   }
 };
 
 class Jpos : public JumpInstruction {
 public:
-  Jpos(Instruction* i) : JumpInstruction(i) {
+  Jpos() : JumpInstruction() {
     this->code = "JPOS";
   }
 };
 
 class Jzero : public JumpInstruction {
 public:
-  Jzero(Instruction* i) : JumpInstruction(i) {
+  Jzero() : JumpInstruction() {
     this->code = "JZERO";
   }
 };
 
 class Jneg : public JumpInstruction {
 public:
-  Jneg(Instruction* i) : JumpInstruction(i) {
+  Jneg() : JumpInstruction() {
     this->code = "JNEG";
   }
 };
