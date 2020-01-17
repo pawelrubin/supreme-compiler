@@ -55,3 +55,37 @@ codeList Assembler::generateCode() {
   }
   return code;
 }
+// void Code::peephole(integer start, integer end) {
+//   std::vector<std::string>::iterator it = code.begin() + start;
+//   integer i = 0;
+//   while (it != code.begin() + end - i - 1) {
+//     if ((*it).substr(0, 5) == "STORE") {
+//       std::string k = (*it).substr(6);
+//       if ((*(it + 1)).substr(0, 4) == "LOAD") {
+//         if (k == (*(it + 1)).substr(5)) {
+//           if (jumps.count(std::stoll(k)) == 0) {
+//             // code.erase(it + 1);
+//             std::cerr << "LOAD "<< k << " at line " << distance(code.begin(),it+1) << std::endl;
+//             // ++i;
+//             // continue;
+//           } 
+//         }
+//       }
+//     }
+//     ++it;
+//   }
+// }
+void Assembler::peephole() {
+  std::vector<Instruction*>::iterator it = this->instructions.begin();
+  while (it != this->instructions.end()) {
+    if (auto s = dynamic_cast<Store*>(*it)) {
+      if (auto l = dynamic_cast<Load*>(*(it + 1))) {
+        if (s->get_pc() == l->get_pc()) {
+          this->instructions.erase(it + 1);
+          continue;
+        }
+      }
+    }
+    ++it;
+  } 
+}

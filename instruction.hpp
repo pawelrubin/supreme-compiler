@@ -17,6 +17,7 @@ private:
 public:
   Assembler& push(Instruction*);
   Assembler& append(InstructionList);
+  void peephole();
   codeList generateCode();
 };
 
