@@ -39,4 +39,4 @@ cleanall: clean
 	rm -f compiler
 
 test:
-	./compiler jftt2019-testy/00-div-mod.imp /tmp/test && echo "33\n7" | ./vm /tmp/test
+	cd jftt2019-testy && python3.8 tester.py
