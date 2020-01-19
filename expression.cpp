@@ -4,19 +4,24 @@
 #include <math.h>
 #include <iostream>
 
-void TValueExpression::load_expr(TIdentifier* result) {
+InstructionVector TValueExpression::load_expr(TIdentifier* result) {
+  InstructionVector instructions;
   if (auto id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-    id->load_addr_to_register(Register::IDR1);
-    this->value->load_value();
-    code->storei(data->get_register(Register::IDR1));
+    instructions
+    .append(id->load_addr_to_register(Register::IDR1))
+    .append(this->value->load_value())
+    .push(new Storei(data->get_register(Register::IDR1)));
   } else {
-    this->value->load_value();
-    code->store(result->get_addr());
+    instructions
+    .append(this->value->load_value())
+    .push(new Store(result->get_addr()));
   }
+  return instructions;
 }
 
-void TBinaryExpression::load_expr(TIdentifier* result) {
+InstructionVector TBinaryExpression::load_expr(TIdentifier* result) {
   // y = x OP x 
+  InstructionVector instructions;
   if (auto lid = dynamic_cast<IdentifierValue*>(lvalue)) {
     if (auto rid = dynamic_cast<IdentifierValue*>(rvalue)) {
       if (lid->get_identifier()->get_name() == rid->get_identifier()->get_name()) {
@@ -24,10 +29,11 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
         switch (this->op){
         case BinaryOperator::PLUS:
           if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-            id->load_addr_to_register(Register::IDR1);
-            lid->load_value();
-            code->lshift();
-            code->storei(data->get_register(Register::IDR1));
+            instructions
+            .append(id->load_addr_to_register(Register::IDR1))
+            .append(lid->load_value())
+            .append(code->lshift())
+            .push(new Storei(data->get_register(Register::IDR1)));
           } else {
             lid->load_value();
             code->lshift();
@@ -228,7 +234,7 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
   }
 }
 
-void TBinaryExpression::plus() { // TODO refactor
+InstructionVector TBinaryExpression::plus() { // TODO refactor
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() + rv->get_value());
@@ -280,7 +286,7 @@ void TBinaryExpression::plus() { // TODO refactor
   }
 }
 
-void TBinaryExpression::minus() { // TODO refactor
+InstructionVector TBinaryExpression::minus() { // TODO refactor
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() - rv->get_value());
@@ -336,7 +342,7 @@ void TBinaryExpression::minus() { // TODO refactor
   }
 }
 
-void TBinaryExpression::times(integer identifier_address) {
+InstructionVector TBinaryExpression::times(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       code->insert_to_acc(lv->get_value() * rv->get_value());
@@ -397,7 +403,7 @@ void TBinaryExpression::times(integer identifier_address) {
   }
 }
 
-void TBinaryExpression::div(integer identifier_address) {
+InstructionVector TBinaryExpression::div(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->reset_acc();
@@ -511,7 +517,7 @@ void TBinaryExpression::div(integer identifier_address) {
 // }
 }
 
-void TBinaryExpression::mod(integer identifier_address) {
+InstructionVector TBinaryExpression::mod(integer identifier_address) {
   if (NumberValue *lv = dynamic_cast<NumberValue*>(lvalue)) {
     if (NumberValue *rv = dynamic_cast<NumberValue*>(rvalue)) {
       if (rv->get_value() == 0) code->insert_to_acc(0);

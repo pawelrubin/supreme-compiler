@@ -39,4 +39,7 @@ print(f"{fails=}")
 if (fails > 4):
     print("\033[91m" + "FAILING!!!")
     exit(1)
+else:
+    print("\033[92m" + "GOOD JOB!!!")
+    exit(0)
 

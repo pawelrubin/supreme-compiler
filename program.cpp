@@ -3,10 +3,13 @@
 
 #include <iostream>
 
-void TProgram::load_program() {
-  code->start_code();
-  commands->load_commands();
-  code->end_code();
+InstructionVector TProgram::load_program() {
+  InstructionVector instructions;
+  instructions
+  .append(code->start_code())
+  .append(commands->load_commands())
+  .append(code->end_code());
+  return instructions;
 }
 
 // TDeclaration::TDeclaration(ident pidentifier) {

@@ -2,6 +2,7 @@
 
 #include "typedefs.hpp"
 #include "data.hpp"
+#include "instruction.hpp"
 
 class Code;
 
@@ -44,7 +45,7 @@ class TProgram {
 
   public:
     TProgram(TCommandBlock* cb) : commands(cb) {}
-    virtual void load_program();
+    virtual InstructionVector load_program();
 };
 
 // class TProgramWithDeclarations : public TProgram {
@@ -87,13 +88,13 @@ class TCommandBlock {
   public:
     TCommandBlock(TCommand*); 
     void add_command(TCommand*);
-    void load_commands();
+    InstructionVector load_commands();
 };
 
 class TCommand {
   public:
     TCommand() = default;
-    virtual void load_command() {}
+    virtual InstructionVector get_instructions() {}
 };
 
 class TAssignCommand : public TCommand {
@@ -104,7 +105,7 @@ class TAssignCommand : public TCommand {
   public:
     TAssignCommand(TIdentifier* id, TExpression* ex)
       : identifier(id), expression(ex) {}
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TIfCommand : public TCommand {
@@ -115,7 +116,7 @@ class TIfCommand : public TCommand {
   public:
     TIfCommand(TCondition* c, TCommandBlock* ib)
      : condition(c), if_block(ib) {} 
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TIfElseCommand : public TIfCommand {
@@ -125,7 +126,7 @@ class TIfElseCommand : public TIfCommand {
   public:
     TIfElseCommand(TCondition* c, TCommandBlock* ib, TCommandBlock* eb)
       : TIfCommand(c, ib), else_block(eb) {} 
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TWhileCommand : public TCommand {
@@ -136,7 +137,7 @@ class TWhileCommand : public TCommand {
   public:
     TWhileCommand(TCondition* c, TCommandBlock* b) 
       : condition(c), while_block(b) {}
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TDoWhileCommand : public TCommand {
@@ -147,7 +148,7 @@ class TDoWhileCommand : public TCommand {
   public:
     TDoWhileCommand(TCommandBlock* b, TCondition* c)
       : do_while_block(b), condition(c) {}
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TForCommand : public TCommand {
@@ -165,13 +166,13 @@ class TForCommand : public TCommand {
 class TForToCommand : public TForCommand {
   public:
     using TForCommand::TForCommand;
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TForDownToCommand : public TForCommand {
   public:
     using TForCommand::TForCommand;
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TReadCommand : public TCommand {
@@ -180,7 +181,7 @@ class TReadCommand : public TCommand {
 
   public:
     TReadCommand(TIdentifier* id) : identifier(id) {}
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 class TWriteCommand : public TCommand {
@@ -189,7 +190,7 @@ class TWriteCommand : public TCommand {
 
   public:
     TWriteCommand(TValue* v) : value(v) {}
-    void load_command() override;
+    InstructionVector get_instructions() override;
 };
 
 /*
@@ -203,20 +204,22 @@ class TCondition {
     TValue *lvalue;
     TValue *rvalue;
     ConditionOperator op;
-    integer jump_address;
+    // integer jump_address;
+    JumpInstruction* jump;
     integer cond_address;
 
-    void eq();
-    void neq();
-    void le();
-    void ge();
-    void leq();
-    void geq();
+    InstructionVector eq();
+    InstructionVector neq();
+    InstructionVector le();
+    InstructionVector ge();
+    InstructionVector leq();
+    InstructionVector geq();
 
   public:
-    integer get_jump_address();
+    // integer get_jump_address();
+    JumpInstruction* get_jump();
     integer get_cond_address();
-    void load_condition();
+    InstructionVector load_condition();
     TCondition(TValue* lv, TValue* rv, ConditionOperator o)
       : lvalue(lv), rvalue(rv), op(o) {}
 };
@@ -229,7 +232,7 @@ class TCondition {
 
 class TExpression {
   public:
-    virtual void load_expr(TIdentifier*) {};
+    virtual InstructionVector load_expr(TIdentifier*) {};
 };
 
 class TValueExpression : public TExpression {
@@ -238,7 +241,7 @@ class TValueExpression : public TExpression {
 
   public:
     TValueExpression(TValue* v) : value(v) {}
-    void load_expr(TIdentifier*) override;
+    InstructionVector load_expr(TIdentifier*) override;
 };
 
 class TBinaryExpression : public TExpression {
@@ -246,16 +249,16 @@ class TBinaryExpression : public TExpression {
     TValue *lvalue;
     TValue *rvalue;
     BinaryOperator op;
-    void plus();
-    void minus();
-    void times(integer addr_for_result);
-    void div(integer addr_for_result);
-    void mod(integer addr_for_result);
+    InstructionVector plus();
+    InstructionVector minus();
+    InstructionVector times(integer addr_for_result);
+    InstructionVector div(integer addr_for_result);
+    InstructionVector mod(integer addr_for_result);
 
   public:
     TBinaryExpression(TValue* lv, TValue* rv, BinaryOperator o)
       : lvalue(lv), rvalue(rv), op(o) {}
-    void load_expr(TIdentifier*) override;
+    InstructionVector load_expr(TIdentifier*) override;
 };
 
 
@@ -268,9 +271,9 @@ class TBinaryExpression : public TExpression {
 
 class TValue {
   public:
-    virtual void load_value() {}; // loads variable value to ACC
-    virtual void insert_to_VLR() {}; // loads variable value to VLR
-    virtual void store_in_register(Register) {};
+    virtual InstructionVector load_value() {}; // loads variable value to ACC
+    virtual InstructionVector insert_to_VLR() {}; // loads variable value to VLR
+    virtual InstructionVector store_in_register(Register) {};
 };
 
 class NumberValue : public TValue {
@@ -279,9 +282,9 @@ class NumberValue : public TValue {
 
   public:
     NumberValue(integer v) : value(v) {}
-    void load_value() override;
-    void insert_to_VLR() override;
-    void store_in_register(Register) override;
+    InstructionVector load_value() override;
+    InstructionVector insert_to_VLR() override;
+    InstructionVector store_in_register(Register) override;
     integer get_value();
 };
 
@@ -291,9 +294,9 @@ class IdentifierValue : public TValue {
 
   public:
     IdentifierValue(TIdentifier*);
-    void load_value() override;
-    void insert_to_VLR() override; // TODO: delete this lmao
-    void store_in_register(Register) override;
+    InstructionVector load_value() override;
+    InstructionVector insert_to_VLR() override; // TODO: delete this lmao
+    InstructionVector store_in_register(Register) override;
     TIdentifier* get_identifier();
 };
 
@@ -310,10 +313,10 @@ class TIdentifier {
   public:
     TIdentifier() = default;
     TIdentifier(ident n) : name(n) {}
-    virtual void load_addr_to_register(Register) {} // stores identifier jump_address in IDR
-    virtual void load_value_to_register(Register);  // stores identifier value in IDR
-    virtual void load() {}
-    virtual void negate() {}
+    virtual InstructionVector load_addr_to_register(Register) {} // stores identifier jump_address in IDR
+    virtual InstructionVector load_value_to_register(Register);  // stores identifier value in IDR
+    virtual InstructionVector load() {}
+    virtual InstructionVector negate() {}
     virtual integer get_addr() { return 0; }
     virtual ident get_name() { return name; }
 };
@@ -325,10 +328,10 @@ class TVariableIdentifier : public TIdentifier {
   public:
     TVariableIdentifier(ident);
     TVariableIdentifier(Variable* v) : variable(v) {}
-    void load_addr_to_register(Register) override;
-    void load() override;
+    InstructionVector load_addr_to_register(Register) override;
+    InstructionVector load() override;
     integer get_addr();
-    void negate() override;
+    InstructionVector negate() override;
 };
 
 class TArrayVariableIdentifier : public TIdentifier {
@@ -339,9 +342,9 @@ class TArrayVariableIdentifier : public TIdentifier {
   public:
     using TIdentifier::get_addr;
     TArrayVariableIdentifier(ident, ident);
-    void load_addr_to_register(Register) override;
-    void load() override;
-    void negate() override;
+    InstructionVector load_addr_to_register(Register) override;
+    InstructionVector load() override;
+    InstructionVector negate() override;
 };
 
 class TArrayNumIdentifier : public TIdentifier {
@@ -351,8 +354,8 @@ class TArrayNumIdentifier : public TIdentifier {
 
   public:
     TArrayNumIdentifier(ident, integer);
-    void load_addr_to_register(Register) override;
-    void load() override;
+    InstructionVector load_addr_to_register(Register) override;
+    InstructionVector load() override;
     integer get_addr();
-    void negate() override;
+    InstructionVector negate() override;
 };

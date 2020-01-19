@@ -1,20 +1,26 @@
 #include "types.hpp"
 #include "code.hpp"
 
-integer TCondition::get_jump_address() {
-  return this->jump_address;
+JumpInstruction* TCondition::get_jump() {
+  return this->jump;
 }
 
 integer TCondition::get_cond_address() {
   return this->cond_address;
 }
 
-void TCondition::load_condition() {
-  cond_address = code->get_instruction_count();
-  TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr(new TVariableIdentifier(new Variable(0)));
-  jump_address = code->get_instruction_count();
+InstructionVector TCondition::load_condition() {
+  InstructionVector instructions;
+  
+  instructions.append(
+    TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr(new TVariableIdentifier(new Variable(0)))
+  );
+
   switch (this->op) {
   case ConditionOperator::EQ:
+      
+    code->jzero(2);
+    code->jump();
     this->eq();
     break;
   case ConditionOperator::NEQ:
@@ -35,32 +41,32 @@ void TCondition::load_condition() {
   }
 }
 
-void TCondition::eq() {
+InstructionVector TCondition::eq() {
   code->jzero(2);
   code->jump();
   this->jump_address++;
 }
 
-void TCondition::neq() {
+InstructionVector TCondition::neq() {
   code->jzero();
 }
 
-void TCondition::le() {
+InstructionVector TCondition::le() {
   code->jneg(2);
   code->jump();
   this->jump_address++;
 }
 
-void TCondition::ge() {
+InstructionVector TCondition::ge() {
   code->jpos(2);
   code->jump();
   this->jump_address++;
 }
 
-void TCondition::leq() {
+InstructionVector TCondition::leq() {
   code->jpos();
 }
 
-void TCondition::geq() {
+InstructionVector TCondition::geq() {
   code->jneg();
 }

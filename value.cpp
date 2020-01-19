@@ -5,16 +5,16 @@ integer NumberValue::get_value() {
   return this->value;
 }
 
-void NumberValue::load_value() {
+InstructionVector NumberValue::load_value() {
   code->insert_to_acc(this->value);
 }
 
-void NumberValue::insert_to_VLR() {
+InstructionVector NumberValue::insert_to_VLR() {
   code->insert_to_acc(this->value);
   code->store(data->get_register(Register::VLR));
 }
 
-void NumberValue::store_in_register(Register reg) {
+InstructionVector NumberValue::store_in_register(Register reg) {
   code->insert_to_acc(this->value);
   code->store(data->get_register(reg));
 }
@@ -23,7 +23,7 @@ IdentifierValue::IdentifierValue(TIdentifier *identifier) {
   this->identifier = identifier;
 }
 
-void IdentifierValue::load_value() {
+InstructionVector IdentifierValue::load_value() {
   if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(this->identifier)) {
     avid->load_addr_to_register(Register::IDR);
     code->loadi(data->get_register(Register::IDR));
@@ -32,11 +32,11 @@ void IdentifierValue::load_value() {
   }
 }
 
-void IdentifierValue::insert_to_VLR() {
+InstructionVector IdentifierValue::insert_to_VLR() {
   // this->identifier->
 }
 
-void IdentifierValue::store_in_register(Register reg) {
+InstructionVector IdentifierValue::store_in_register(Register reg) {
   // code->insert_to_acc(this->value);
   // code->store(data->get_register(reg));
   this->identifier->load_value_to_register(reg);

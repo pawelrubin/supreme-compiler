@@ -22,17 +22,17 @@ class Code {
     void insert_jump_address(integer);
 
     // utilities
-    void start_code();
-    void end_code();
+    InstructionVector start_code();
+    InstructionVector end_code();
     codeList get_code();
     void print_code();
     void fprint_code(std::string);
 
     // high order operations
-    void rshift();
-    void lshift();
-    void parity_test(TIdentifier*);
-    void set_sign_bit(TIdentifier*, TIdentifier*);
+    InstructionVector rshift();
+    InstructionVector lshift();
+    InstructionVector parity_test(TIdentifier*);
+    InstructionVector set_sign_bit(TIdentifier*, TIdentifier*, Instruction*);
 
     // atomic operations
     void atomic(std::string);
@@ -64,8 +64,6 @@ class Code {
     void halt();
 
     // memory managment
-    void insert_to_acc(integer);
-    void reset_acc();
-    void set_lshift();
-    void set_rshift();
+    InstructionVector insert_to_acc(integer);
+    InstructionVector reset_acc();
 };

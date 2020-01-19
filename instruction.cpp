@@ -2,18 +2,42 @@
 
 #include <iostream>
 
-Assembler& Assembler::push(Instruction* instruction) {
+void Instruction::set_unsafe() {
+  this->safe_to_delete = false;
+}
+
+bool Instruction::is_safe_to_delete() {
+  return this->safe_to_delete;
+}
+
+MemoryInstruction::MemoryInstruction(Register reg) : Instruction() {
+  this->address = data->get_register(reg);
+}
+
+integer MemoryInstruction::get_address() {
+  return this->address;
+}
+
+InstructionVector& InstructionVector::push(Instruction* instruction) {
   this->instructions.push_back(instruction);
   return *this;
 }
 
-Assembler& Assembler::append(InstructionList next_instructions) {
+InstructionVector& InstructionVector::append(InstructionVector next_instructions) {
   this->instructions.insert(
     std::end(this->instructions),
-    std::begin(next_instructions),
-    std::end(next_instructions)
+    std::begin(*next_instructions.get_vector()),
+    std::end(*next_instructions.get_vector())
   );
   return *this;
+}
+
+std::vector<Instruction*>* InstructionVector::get_vector() {
+  return &(this->instructions);
+}
+
+Instruction* InstructionVector::begin() {
+  return *this->instructions.begin();
 }
 
 void Instruction::set_pc(integer pc) {
@@ -37,55 +61,90 @@ std::string JumpInstruction::assembly() {
 }
 
 void JumpInstruction::set_jump_destination(Instruction* jump_destination) {
+  jump_destination->set_unsafe();
   this->jump_destination = jump_destination;
+  std::cerr << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<this->jump_destination<<std::endl;
+
 }
 
 // TODO assert that jump destinations are set
-codeList Assembler::generateCode() {
+codeList CodeGenerator::generateCode() {
   codeList code;
   integer pc = 0;
-  for (const auto &i : this->instructions) {
-    i->set_pc(pc);
-    ++pc;
+
+  for (const auto &i : *this->instructions.get_vector()) {
+    if (not dynamic_cast<NOP*>(i)) {
+      i->set_pc(pc);
+      ++pc;
+    }
   }
-  for (const auto &i : this->instructions) {
-    auto c = i->assembly();
-    std::cout<<i->get_pc()<<": "<<c<<std::endl;
-    code.push_back(c);
+
+  auto vector = this->instructions.get_vector();
+  auto it = vector->begin();
+
+  while (it + 1 != vector->end()) {
+    if (auto nop = dynamic_cast<NOP*>(*it)) {
+      for (const auto &j : nop->jumpers) {
+        int i = 1;
+        do {
+          j->set_jump_destination(*(it + i));
+          ++i;
+        } while (dynamic_cast<NOP*>(*(it + i)));
+        std::cout<<(*(it + 1))->assembly()<<std::endl;
+      }
+    } else {
+      auto c = (*it)->assembly();
+      std::cout<<(*it)->get_pc()<<": "<<c<< " "<<(*it)<< std::endl;
+      code.push_back(c);
+    }
+    ++it;
   }
+
+  // for (const auto &i : *this->instructions.get_vector()) {
+  //   if (auto nop = dynamic_cast<NOP*>(i)) {
+  //     for (const auto j : nop->jumpers) {
+  //       j->set_jump_destination(i+1);
+  //       std::cout<<(i+1)->assembly()<<std::endl;
+  //     }
+  //   } else {
+  //     auto c = i->assembly();
+  //     std::cout<<i->get_pc()<<": "<<c<<std::endl;
+  //     code.push_back(c);
+  //   }
+  // }
   return code;
 }
-// void Code::peephole(integer start, integer end) {
-//   std::vector<std::string>::iterator it = code.begin() + start;
-//   integer i = 0;
-//   while (it != code.begin() + end - i - 1) {
-//     if ((*it).substr(0, 5) == "STORE") {
-//       std::string k = (*it).substr(6);
-//       if ((*(it + 1)).substr(0, 4) == "LOAD") {
-//         if (k == (*(it + 1)).substr(5)) {
-//           if (jumps.count(std::stoll(k)) == 0) {
-//             // code.erase(it + 1);
-//             std::cerr << "LOAD "<< k << " at line " << distance(code.begin(),it+1) << std::endl;
-//             // ++i;
-//             // continue;
-//           } 
-//         }
-//       }
-//     }
-//     ++it;
-//   }
-// }
-void Assembler::peephole() {
-  std::vector<Instruction*>::iterator it = this->instructions.begin();
-  while (it != this->instructions.end()) {
-    if (auto s = dynamic_cast<Store*>(*it)) {
-      if (auto l = dynamic_cast<Load*>(*(it + 1))) {
-        if (s->get_pc() == l->get_pc()) {
-          this->instructions.erase(it + 1);
-          continue;
+
+void CodeGenerator::peephole() {
+  auto vector = this->instructions.get_vector();
+  auto it = vector->begin();
+  while (it + 1 != vector->end()) {
+    if (auto store = dynamic_cast<Store*>(*it)) {
+      if (auto load = dynamic_cast<Load*>(*(it + 1))) {
+        if (store->get_address() == load->get_address()) {
+          if (load->is_safe_to_delete()) {
+            vector->erase(it + 1);
+            continue;
+          }
         }
       }
     }
     ++it;
   } 
+}
+
+void InstructionVectorWithJump::set_jump(JumpInstruction* jump) {
+  this->jump = jump;
+}
+
+JumpInstruction* InstructionVectorWithJump::get_jump() {
+  return this->jump;
+}
+
+NOP::NOP(JumpInstruction* jump) {
+  this->jumpers.push_back(jump);
+}
+
+std::string Instruction::get_code() {
+  return this->code;
 }

@@ -1,5 +1,6 @@
 #include "types.hpp"
 #include "code.hpp"
+#include "instruction.hpp"
 
 #include <iostream>
 
@@ -11,117 +12,139 @@ void TCommandBlock::add_command(TCommand* command) {
   this->commands.push_back(command);
 }
 
-void TCommandBlock::load_commands() {
+InstructionVector TCommandBlock::load_commands() {
+  InstructionVector instructions;
   for (const auto &command : this->commands) {
-    command->load_command();
+    instructions.append(command->get_instructions());
   }
+  return instructions;
 }
 
-void TWhileCommand::load_command() {
-  condition->load_condition();
-  while_block->load_commands();
-  code->jump(condition->get_cond_address());
-  code->insert_jump_address(condition->get_jump_address());
+InstructionVector TWhileCommand::get_instructions() {
+  InstructionVector instructions;
+  auto c = condition->load_condition(); instructions
+  .append(c)
+    .append(while_block->load_commands())
+    .push(new Jump(c.begin()))
+  .push(new NOP(condition->get_jump()));
+  return instructions;
 }
 
-void TDoWhileCommand::load_command() {
-  integer do_jump = code->get_instruction_count();
-  do_while_block->load_commands();
-  condition->load_condition();
-  code->jump(do_jump);
-  code->insert_jump_address(condition->get_jump_address());
+InstructionVector TDoWhileCommand::get_instructions() {
+  InstructionVector instructions;
+
+  auto c = do_while_block->load_commands();
+  instructions
+  .append(c)
+  .append(condition->load_condition()
+  .push(new Jump(c.begin()))
+  .push(new NOP(condition->get_jump()));
+
+  return instructions;
 }
 
-void TForToCommand::load_command(){
+InstructionVector TForToCommand::get_instructions(){
   Variable* it = data->new_iterator(this->pidentifier);
-
+  InstructionVector instructions;
   if (auto s = dynamic_cast<NumberValue*>(start)) {
     if (auto e = dynamic_cast<NumberValue*>(end)) {
       integer iterations = e->get_value() - s->get_value() + 1;
 
-      start->load_value();
-      code->store(it->get_addr());
+      instructions
+      .append(start->load_value())
+      .push(new Store(it->get_addr()));
       for (int i = 1; i < iterations; i++) {
-        code->inc();
-        code->store(it->get_addr() + i);
+        instructions
+        .push(new Inc())
+        .push(new Store(it->get_addr() + i));
         data->inc_iterator_count();
       }
 
       for (int i = 0; i < iterations; i++) {
-        for_block->load_commands();
+        instructions.append(for_block->load_commands());
         it->set_addr(it->get_addr() + 1);
       }
 
-      return;
+      return instructions;
     }
   }
-  end->load_value();
-  code->store(it->get_addr() + 1); // it_end <- b
-  start->load_value();
-  code->store(it->get_addr());     // it     <- a
+  
+  instructions
+  .append(end->load_value())
+  .push(new Store(it->get_addr() + 1)) // it_end <- b
+  .append(start->load_value())
+  .push(new Store(it->get_addr()));    // it     <- a
 
-  integer s = code->get_instruction_count(); // s «════╗
-    code->sub(it->get_addr() + 1); // sub it_end        ║
-    integer e = code->jpos();      // jpos e            ║             
-    for_block->load_commands();    //                   ║
-    code->load(it->get_addr());    // load it           ║
-    code->inc();                   // inc               ║
-    code->store(it->get_addr());   // store it          ║
-    code->jump(s);                 // jump s  ════════╝
-  code->insert_jump_address(e);    // e
-
+  auto s = new Sub(it->get_addr() + 1); instructions.push(s); // s: sub it_end s «════╗
+  auto e = new Jpos(); instructions.push(e)                   // jpos e                ║
+    .append(for_block->load_commands())                       //                       ║
+    .push(new Load(it->get_addr()))                           // load it               ║
+    .push(new Inc())                                          // inc                   ║
+    .push(new Store(it->get_addr()))                          // store it              ║
+    .push(new Jump(s));                                       // jump s  ════════════╝
+  e->set_jump_destination(nullptr);
+  
   data->del_iterator(this->pidentifier);
   
+  return instructions;
 }
 
-void TForDownToCommand::load_command() {
+InstructionVector TForDownToCommand::get_instructions() {
   Variable* it = data->new_iterator(this->pidentifier);
-
+  InstructionVector instructions;
   if (auto s = dynamic_cast<NumberValue*>(start)) {
     if (auto e = dynamic_cast<NumberValue*>(end)) {
       integer iterations = s->get_value() - e->get_value() + 1;
 
-      start->load_value();
-      code->store(it->get_addr());     // it     <- a
+      instructions
+      .append(start->load_value())
+      .push(new Store(it->get_addr()));
       for (int i = 1; i < iterations; i++) {
-        code->dec();
-        code->store(it->get_addr() + i);
+        instructions
+        .push(new Dec())
+        .push(new Store(it->get_addr() + i));
         data->inc_iterator_count();
       }
 
       for (int i = 0; i < iterations; i++) {
-        for_block->load_commands();
+        instructions.append(for_block->load_commands());
         it->set_addr(it->get_addr() + 1);
       }
 
-      return;
+      return instructions;
     }
   }
-  end->load_value();
-  code->store(it->get_addr() + 1); // it_end <- b
-  start->load_value();
-  code->store(it->get_addr());     // it     <- a
+  
+  instructions
+  .append(end->load_value())
+  .push(new Store(it->get_addr() + 1)) // it_end <- b
+  .append(start->load_value())
+  .push(new Store(it->get_addr()));    // it     <- a
 
-  integer s = code->get_instruction_count(); // s «════╗
-    code->sub(it->get_addr() + 1); // sub it_end        ║
-    integer e = code->jneg();      // jpos e            ║
-    for_block->load_commands();    //                   ║
-    code->load(it->get_addr());    // load it           ║
-    code->dec();                   // inc               ║
-    code->store(it->get_addr());   // store it          ║
-    code->jump(s);                 // jump s   ═══════╝
-  code->insert_jump_address(e);    // e
-
+  auto s = new Sub(it->get_addr() + 1); instructions.push(s); // s: sub it_end s «════╗
+  auto e = new Jpos(); instructions.push(e)                   // jpos e                ║
+    .append(for_block->load_commands())                       //                       ║
+    .push(new Load(it->get_addr()))                           // load it               ║
+    .push(new Dec())                                          // inc                   ║
+    .push(new Store(it->get_addr()))                          // store it              ║
+    .push(new Jump(s));                                       // jump s  ════════════╝
+  e->set_jump_destination(nullptr);
+  
   data->del_iterator(this->pidentifier);
+  
+  return instructions;
 }
 
-void TIfCommand::load_command() {
-  condition->load_condition();
-  if_block->load_commands();
-  code->insert_jump_address(this->condition->get_jump_address());
+InstructionVector TIfCommand::get_instructions() {
+  InstructionVector instructions;
+  auto c = condition->load_condition(); 
+    instructions.append(c)
+    .append(if_block->load_commands());
+    .push(new NOP(c.))
+  c->
 }
 
-void TIfElseCommand::load_command() {
+InstructionVector TIfElseCommand::get_instructions() {
   condition->load_condition();
   if_block->load_commands();
   integer j = code->jump();
@@ -130,22 +153,29 @@ void TIfElseCommand::load_command() {
   code->insert_jump_address(j);
 }
 
-void TWriteCommand::load_command() {
-  this->value->load_value(); // ACC = value.value
-  code->put();          // PUT
+InstructionVector TWriteCommand::get_instructions() {
+  InstructionVector instructions;
+  instructions
+  .append(this->value->load_value()) // ACC = value.value
+  .push(new Put());                  // PUT
+  return instructions;
 }
 
-void TReadCommand::load_command() {
+InstructionVector TReadCommand::get_instructions() {
+  InstructionVector instructions;
   if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(this->identifier)) {
-    id->load_addr_to_register(Register::IDR);         // IDR = id.addr
-    code->get();                    // ACC = input
-    code->storei(data->get_register(Register::IDR));  // p(IDR) = ACC
+    instructions
+    .append(id->load_addr_to_register(Register::IDR)) // IDR = id.addr
+    .push(new Get())                                  // ACC = input
+    .push(new Storei(Register::IDR));                 // p(IDR) = ACC
   } else {
-    code->get();                         // ACC = input
-    code->store(this->identifier->get_addr()); // p(id.addr) = ACC
+    instructions
+    .push(new Get())                                // ACC = input
+    .push(new Store(this->identifier->get_addr())); // p(id.addr) = ACC
   }
+  return instructions;
 }
 
-void TAssignCommand::load_command() {
-  this->expression->load_expr(this->identifier);
+InstructionVector TAssignCommand::get_instructions() {
+  return this->expression->load_expr(this->identifier);
 }
