@@ -1,4 +1,5 @@
 #include "instruction.hpp"
+#include "exceptions.hpp"
 
 #include <iostream>
 
@@ -63,62 +64,53 @@ std::string JumpInstruction::assembly() {
 void JumpInstruction::set_jump_destination(Instruction* jump_destination) {
   jump_destination->set_unsafe();
   this->jump_destination = jump_destination;
-  std::cerr << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<this->jump_destination<<std::endl;
-
+  std::cerr << this->code << " " << this << " : " << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<" "<<this->jump_destination<<std::endl;
 }
 
-// TODO assert that jump destinations are set
 codeList CodeGenerator::generateCode() {
   codeList code;
   integer pc = 0;
 
-  for (const auto &i : *this->instructions.get_vector()) {
-    if (not dynamic_cast<NOP*>(i)) {
-      i->set_pc(pc);
-      ++pc;
-    }
-  }
-
   auto vector = this->instructions.get_vector();
   auto it = vector->begin();
 
-  while (it + 1 != vector->end()) {
+  // setting jump destinations and program counter
+  while (it != vector->end()) {
     if (auto nop = dynamic_cast<NOP*>(*it)) {
+      if (it + 1 == vector->end()) {
+        throw NOPAsLastInstructionException();
+      }
       for (const auto &j : nop->jumpers) {
         int i = 1;
-        do {
-          j->set_jump_destination(*(it + i));
+        while (dynamic_cast<NOP*>(*(it + i))) {
           ++i;
-        } while (dynamic_cast<NOP*>(*(it + i)));
-        std::cout<<(*(it + 1))->assembly()<<std::endl;
+        }
+        j->set_jump_destination(*(it + i));
       }
     } else {
-      auto c = (*it)->assembly();
-      std::cout<<(*it)->get_pc()<<": "<<c<< " "<<(*it)<< std::endl;
-      code.push_back(c);
+      (*it)->set_pc(pc);
+      ++pc;
     }
     ++it;
   }
 
-  // for (const auto &i : *this->instructions.get_vector()) {
-  //   if (auto nop = dynamic_cast<NOP*>(i)) {
-  //     for (const auto j : nop->jumpers) {
-  //       j->set_jump_destination(i+1);
-  //       std::cout<<(i+1)->assembly()<<std::endl;
-  //     }
-  //   } else {
-  //     auto c = i->assembly();
-  //     std::cout<<i->get_pc()<<": "<<c<<std::endl;
-  //     code.push_back(c);
-  //   }
-  // }
+  vector = this->instructions.get_vector();
+  it = vector->begin();
+
+  while (it != vector->end()) {
+    if (not dynamic_cast<NOP*>(*it)) {
+      code.push_back(std::to_string((*it)->get_pc()) + ": " + (*it)->assembly());
+    }
+    ++it;
+  }
+  
   return code;
 }
 
 void CodeGenerator::peephole() {
   auto vector = this->instructions.get_vector();
   auto it = vector->begin();
-  while (it + 1 != vector->end()) {
+  while (it + 1 !=   vector->end()) {
     if (auto store = dynamic_cast<Store*>(*it)) {
       if (auto load = dynamic_cast<Load*>(*(it + 1))) {
         if (store->get_address() == load->get_address()) {

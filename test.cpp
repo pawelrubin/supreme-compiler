@@ -20,12 +20,12 @@ InstructionVector init() {
 
 InstructionVectorWithJump le() {
   InstructionVectorWithJump code;
-  // auto jneg = new Jneg();
+  auto jneg = new Jneg();
   auto jump = new Jump();
-  auto nop = new NOP(jump);
+  auto nop = new NOP(jneg);
   code.set_jump(jump);
   
-  code.push(new Jneg(nop))
+  code.push(jneg)
   .push(jump)
   .push(nop);
 
@@ -55,12 +55,20 @@ int main() {
   static_cast<JumpInstruction*>(lec_jump)->set_jump_destination(l); k->set_jump_destination(l);
   instructions.push(l)
   .push(new Put())
-  .push(new Halt());
+  .push(new Halt())
+  .push(new NOP(lec_jump));
 
-  CodeGenerator code_generator(instructions);
-  code_generator.peephole();
-  code_generator.generateCode();
+  try {
+    CodeGenerator code_generator(instructions);
+    code_generator.peephole();
+    codeList code = code_generator.generateCode();
 
-  std::cerr << instructions.begin()->get_pc();
+    for (const auto &c : code) {
+      std::cout << c << std::endl;
+    }
+  } catch(const std::exception& e) {
+    std::cerr << e.what() << '\n';
+  }
+  
 }
 
