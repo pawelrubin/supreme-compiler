@@ -122,7 +122,7 @@ InstructionVector TForDownToCommand::get_instructions() {
   .push(new Store(it->get_addr()));    // it     <- a
 
   auto s = new Sub(it->get_addr() + 1); instructions.push(s); // s: sub it_end s «════╗
-  auto e = new Jpos(); instructions.push(e)                   // jpos e                ║
+  auto e = new Jneg(); instructions.push(e)                   // jpos e                ║
     .append(for_block->load_commands())                       //                       ║
     .push(new Load(it->get_addr()))                           // load it               ║
     .push(new Dec())                                          // inc                   ║
