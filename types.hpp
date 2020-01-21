@@ -94,7 +94,7 @@ class TCommandBlock {
 class TCommand {
   public:
     TCommand() = default;
-    virtual InstructionVector get_instructions() {}
+    virtual InstructionVector get_instructions() = 0;
 };
 
 class TAssignCommand : public TCommand {
@@ -204,22 +204,18 @@ class TCondition {
     TValue *lvalue;
     TValue *rvalue;
     ConditionOperator op;
-    // integer jump_address;
     JumpInstruction* jump;
-    integer cond_address;
 
-    InstructionVector eq();
-    InstructionVector neq();
-    InstructionVector le();
-    InstructionVector ge();
-    InstructionVector leq();
-    InstructionVector geq();
+    InstructionVectorWithJump eq();
+    InstructionVectorWithJump neq();
+    InstructionVectorWithJump le();
+    InstructionVectorWithJump ge();
+    InstructionVectorWithJump leq();
+    InstructionVectorWithJump geq();
 
   public:
-    // integer get_jump_address();
-    JumpInstruction* get_jump();
-    integer get_cond_address();
-    InstructionVector load_condition();
+    JumpInstruction* get_jump();  // IDEA refactor to set_jump 
+    InstructionVectorWithJump load_condition();
     TCondition(TValue* lv, TValue* rv, ConditionOperator o)
       : lvalue(lv), rvalue(rv), op(o) {}
 };
@@ -232,7 +228,7 @@ class TCondition {
 
 class TExpression {
   public:
-    virtual InstructionVector load_expr(TIdentifier*) {};
+    virtual InstructionVector load_expr(TIdentifier*) = 0;
 };
 
 class TValueExpression : public TExpression {
@@ -271,9 +267,8 @@ class TBinaryExpression : public TExpression {
 
 class TValue {
   public:
-    virtual InstructionVector load_value() {}; // loads variable value to ACC
-    virtual InstructionVector insert_to_VLR() {}; // loads variable value to VLR
-    virtual InstructionVector store_in_register(Register) {};
+    virtual InstructionVector load_value() = 0; // loads variable value to ACC
+    virtual InstructionVector store_in_register(Register) = 0;
 };
 
 class NumberValue : public TValue {
@@ -283,7 +278,6 @@ class NumberValue : public TValue {
   public:
     NumberValue(integer v) : value(v) {}
     InstructionVector load_value() override;
-    InstructionVector insert_to_VLR() override;
     InstructionVector store_in_register(Register) override;
     integer get_value();
 };
@@ -295,7 +289,6 @@ class IdentifierValue : public TValue {
   public:
     IdentifierValue(TIdentifier*);
     InstructionVector load_value() override;
-    InstructionVector insert_to_VLR() override; // TODO: delete this lmao
     InstructionVector store_in_register(Register) override;
     TIdentifier* get_identifier();
 };
@@ -313,10 +306,10 @@ class TIdentifier {
   public:
     TIdentifier() = default;
     TIdentifier(ident n) : name(n) {}
-    virtual InstructionVector load_addr_to_register(Register) {} // stores identifier jump_address in IDR
+    virtual InstructionVector load_addr_to_register(Register) = 0; // stores identifier jump_address in IDR
     virtual InstructionVector load_value_to_register(Register);  // stores identifier value in IDR
-    virtual InstructionVector load() {}
-    virtual InstructionVector negate() {}
+    virtual InstructionVector load() = 0;
+    virtual InstructionVector negate() = 0;
     virtual integer get_addr() { return 0; }
     virtual ident get_name() { return name; }
 };

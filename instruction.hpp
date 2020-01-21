@@ -90,7 +90,7 @@ public:
 class NOP : public Instruction {
 public:
   std::vector<JumpInstruction*> jumpers;
-  NOP() = default;
+  // NOP() = default;
   NOP(JumpInstruction*);
   void add(JumpInstruction*);
   std::string assembly() override { return ""; }

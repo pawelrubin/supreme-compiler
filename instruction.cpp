@@ -64,7 +64,7 @@ std::string JumpInstruction::assembly() {
 void JumpInstruction::set_jump_destination(Instruction* jump_destination) {
   jump_destination->set_unsafe();
   this->jump_destination = jump_destination;
-  std::cerr << this->code << " " << this << " : " << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<" "<<this->jump_destination<<std::endl;
+  std::cerr << this->code << " " /*<< this */<< " : " << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<" "/*<<this->jump_destination*/<<std::endl;
 }
 
 codeList CodeGenerator::generateCode() {
@@ -74,6 +74,7 @@ codeList CodeGenerator::generateCode() {
   auto vector = this->instructions.get_vector();
   auto it = vector->begin();
 
+  // TODO erase NOPs
   // setting jump destinations and program counter
   while (it != vector->end()) {
     if (auto nop = dynamic_cast<NOP*>(*it)) {
@@ -99,7 +100,8 @@ codeList CodeGenerator::generateCode() {
 
   while (it != vector->end()) {
     if (not dynamic_cast<NOP*>(*it)) {
-      code.push_back(std::to_string((*it)->get_pc()) + ": " + (*it)->assembly());
+      auto c = (*it)->assembly();
+      code.push_back(/*std::to_string((*it)->get_pc()) + ": " + */c);
     }
     ++it;
   }
@@ -115,6 +117,7 @@ void CodeGenerator::peephole() {
       if (auto load = dynamic_cast<Load*>(*(it + 1))) {
         if (store->get_address() == load->get_address()) {
           if (load->is_safe_to_delete()) {
+            std::cerr << "Erasing redundant LOAD..." << std::endl;
             vector->erase(it + 1);
             continue;
           }

@@ -5,68 +5,106 @@ JumpInstruction* TCondition::get_jump() {
   return this->jump;
 }
 
-integer TCondition::get_cond_address() {
-  return this->cond_address;
-}
-
-InstructionVector TCondition::load_condition() {
-  InstructionVector instructions;
+InstructionVectorWithJump TCondition::load_condition() {
+  InstructionVectorWithJump instructions;
   
   instructions.append(
-    TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS).load_expr(new TVariableIdentifier(new Variable(0)))
+    TBinaryExpression(lvalue, rvalue, BinaryOperator::MINUS)
+    .load_expr(new TVariableIdentifier(new Variable(0)))
   );
 
   switch (this->op) {
   case ConditionOperator::EQ:
-      
-    code->jzero(2);
-    code->jump();
-    this->eq();
+    instructions.append(this->eq());
     break;
   case ConditionOperator::NEQ:
-    this->neq();
+    instructions.append(this->neq());
     break;
   case ConditionOperator::LE:
-    this->le();
+    instructions.append(this->le());
     break;
   case ConditionOperator::GE:
-    this->ge();
+    instructions.append(this->ge());
     break;
   case ConditionOperator::LEQ:
-    this->leq();
+    instructions.append(this->leq());
     break;
   case ConditionOperator::GEQ:
-    this->geq();
+    instructions.append(this->geq());
     break;
   }
+
+  return instructions;
 }
 
-InstructionVector TCondition::eq() {
-  code->jzero(2);
-  code->jump();
-  this->jump_address++;
+InstructionVectorWithJump TCondition::eq() {
+  InstructionVectorWithJump code;
+  auto jzero = new Jzero();
+  auto jump = new Jump();
+  auto nop = new NOP(jzero);
+  code.set_jump(jump);
+  
+  code.push(jzero)
+  .push(jump)
+  .push(nop);
+
+  return code;
 }
 
-InstructionVector TCondition::neq() {
-  code->jzero();
+InstructionVectorWithJump TCondition::neq() {
+  InstructionVectorWithJump code;
+  auto jzero = new Jzero();
+  code.set_jump(jzero);
+  
+  code.push(jzero);
+
+  return code;
 }
 
-InstructionVector TCondition::le() {
-  code->jneg(2);
-  code->jump();
-  this->jump_address++;
+InstructionVectorWithJump TCondition::le() {
+  InstructionVectorWithJump code;
+  auto jneg = new Jneg();
+  auto jump = new Jump();
+  auto nop = new NOP(jneg);
+  code.set_jump(jump);
+  
+  code.push(jneg)
+  .push(jump)
+  .push(nop);
+
+  return code;
 }
 
-InstructionVector TCondition::ge() {
-  code->jpos(2);
-  code->jump();
-  this->jump_address++;
+InstructionVectorWithJump TCondition::ge() {
+  InstructionVectorWithJump code;
+  auto jpos = new Jpos();
+  auto jump = new Jump();
+  auto nop = new NOP(jpos);
+  code.set_jump(jump);
+  
+  code.push(jpos)
+  .push(jump)
+  .push(nop);
+
+  return code;
 }
 
-InstructionVector TCondition::leq() {
-  code->jpos();
+InstructionVectorWithJump TCondition::leq() {
+  InstructionVectorWithJump code;
+  auto jpos = new Jpos();
+  code.set_jump(jpos);
+  
+  code.push(jpos);
+
+  return code;
 }
 
-InstructionVector TCondition::geq() {
-  code->jneg();
+InstructionVectorWithJump TCondition::geq() {
+  InstructionVectorWithJump code;
+  auto jneg = new Jneg();
+  code.set_jump(jneg);
+  
+  code.push(jneg);
+
+  return code;
 }

@@ -50,21 +50,22 @@ int main() {
   instructions.push(k)
     .push(new Sub(0))
     .push(new Dec())
-    .push(new Store(Register::A));
-  auto l = new Load(Register::A); 
-  static_cast<JumpInstruction*>(lec_jump)->set_jump_destination(l); k->set_jump_destination(l);
-  instructions.push(l)
+    .push(new Store(Register::A))
+  .push(new NOP(lec_jump))
+  .push(new NOP(k))
+  .push(new Load(Register::A))
   .push(new Put())
-  .push(new Halt())
-  .push(new NOP(lec_jump));
+  .push(new Halt());
 
   try {
     CodeGenerator code_generator(instructions);
     code_generator.peephole();
     codeList code = code_generator.generateCode();
 
-    for (const auto &c : code) {
-      std::cout << c << std::endl;
+    int i =0;
+    for ( const auto &c : code) {
+      std::cout << std::to_string(i) <<": "<< c << std::endl;
+      ++i;
     }
   } catch(const std::exception& e) {
     std::cerr << e.what() << '\n';

@@ -36,7 +36,7 @@ InstructionVector TDoWhileCommand::get_instructions() {
   auto c = do_while_block->load_commands();
   instructions
   .append(c)
-  .append(condition->load_condition()
+  .append(condition->load_condition())
   .push(new Jump(c.begin()))
   .push(new NOP(condition->get_jump()));
 
@@ -81,8 +81,8 @@ InstructionVector TForToCommand::get_instructions(){
     .push(new Load(it->get_addr()))                           // load it               ║
     .push(new Inc())                                          // inc                   ║
     .push(new Store(it->get_addr()))                          // store it              ║
-    .push(new Jump(s));                                       // jump s  ════════════╝
-  e->set_jump_destination(nullptr);
+    .push(new Jump(s))                                        // jump s  ════════════╝
+  .push(new NOP(e));
   
   data->del_iterator(this->pidentifier);
   
@@ -127,8 +127,8 @@ InstructionVector TForDownToCommand::get_instructions() {
     .push(new Load(it->get_addr()))                           // load it               ║
     .push(new Dec())                                          // inc                   ║
     .push(new Store(it->get_addr()))                          // store it              ║
-    .push(new Jump(s));                                       // jump s  ════════════╝
-  e->set_jump_destination(nullptr);
+    .push(new Jump(s))                                        // jump s  ════════════╝
+  .push(new NOP(e));
   
   data->del_iterator(this->pidentifier);
   
@@ -139,18 +139,23 @@ InstructionVector TIfCommand::get_instructions() {
   InstructionVector instructions;
   auto c = condition->load_condition(); 
     instructions.append(c)
-    .append(if_block->load_commands());
-    .push(new NOP(c.))
-  c->
+    .append(if_block->load_commands())
+  .push(new NOP(c.get_jump()));
+  return instructions;
 }
 
 InstructionVector TIfElseCommand::get_instructions() {
-  condition->load_condition();
-  if_block->load_commands();
-  integer j = code->jump();
-  code->insert_jump_address(condition->get_jump_address());
-  else_block->load_commands();
-  code->insert_jump_address(j);
+  InstructionVector instructions;
+  auto c = condition->load_condition();
+    instructions.append(c)
+    .append(if_block->load_commands());
+    auto end_if = new Jump();
+  instructions.push(end_if);
+    auto e = else_block->load_commands();
+    c.get_jump()->set_jump_destination(e.begin());
+    instructions.append(e)
+  .push(new NOP(end_if));
+  return instructions;
 }
 
 InstructionVector TWriteCommand::get_instructions() {

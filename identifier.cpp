@@ -3,8 +3,10 @@
 
 
 InstructionVector TIdentifier::load_value_to_register(Register reg) {
-  this->load();
-  code->store(data->get_register(reg));
+  InstructionVector instructions;
+  instructions.append(this->load())
+  .push(new Store(data->get_register(reg)));
+  return instructions;
 }
 
 
@@ -17,8 +19,10 @@ TVariableIdentifier::TVariableIdentifier(ident var_name) : TIdentifier(var_name)
 }
 
 InstructionVector TVariableIdentifier::load_addr_to_register(Register reg) {
-  code->insert_to_acc(this->variable->get_addr());
-  code->store(data->get_register(reg));
+  InstructionVector instructions;
+  instructions.append(code->insert_to_acc(this->variable->get_addr()))
+  .push(new Store(data->get_register(reg)));
+  return instructions;
 }
 
 integer TVariableIdentifier::get_addr() {
@@ -26,13 +30,17 @@ integer TVariableIdentifier::get_addr() {
 }
 
 InstructionVector TVariableIdentifier::load() {
-  code->load(this->variable->get_addr());
+  InstructionVector instructions;
+  instructions.push(new Load(this->variable->get_addr()));
+  return instructions;
 }
 
 InstructionVector TVariableIdentifier::negate() {
-  code->reset_acc();
-  code->sub(this->get_addr());
-  code->store(this->get_addr());
+  InstructionVector instructions;
+  instructions.push(new Sub(0))
+  .push(new Sub(this->get_addr()))
+  .push(new Store(this->get_addr()));
+  return instructions;
 }
 
 
@@ -46,22 +54,29 @@ TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_nam
 }
 
 InstructionVector TArrayVariableIdentifier::load_addr_to_register(Register reg) {
-  code->insert_to_acc(this->array->get_norm_addr());
-  code->add(this->variable->get_addr());
-  code->store(data->get_register(reg));
+  InstructionVector instructions;
+  instructions.append(code->insert_to_acc(this->array->get_norm_addr()))
+  .push(new Add(this->variable->get_addr()))
+  .push(new Store(data->get_register(reg)));
+  return instructions;
 }
 
 InstructionVector TArrayVariableIdentifier::load() {
-  code->insert_to_acc(this->array->get_norm_addr());
-  code->add(this->variable->get_addr());
-  code->loadi(0);
+  InstructionVector instructions;
+  instructions.append(code->insert_to_acc(this->array->get_norm_addr()))
+  .push(new Add(this->variable->get_addr()))
+  .push(new Loadi(0));
+  return instructions;
 }
 
 // negates tab(a), assuming that tab(a) address is in IDR register
 InstructionVector TArrayVariableIdentifier::negate() {
-  code->reset_acc();
-  code->sub(data->get_register(Register::IDR));
-  code->store(data->get_register(Register::IDR));
+  InstructionVector instructions;
+  instructions
+  .push(new Sub(0))
+  .push(new Sub(data->get_register(Register::IDR)))
+  .push(new Store(data->get_register(Register::IDR)));
+  return instructions;
 }
 
 TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) : TIdentifier(arr_name) {
@@ -70,8 +85,11 @@ TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) : TI
 }
 
 InstructionVector TArrayNumIdentifier::load_addr_to_register(Register reg) {
-  code->insert_to_acc(this->array->get_addr(this->num_value));
-  code->store(data->get_register(reg));
+  InstructionVector instructions;
+  instructions
+  .append(code->insert_to_acc(this->array->get_addr(this->num_value)))
+  .push(new Store(data->get_register(reg)));
+  return instructions;
 }
 
 integer TArrayNumIdentifier::get_addr() {
@@ -79,11 +97,17 @@ integer TArrayNumIdentifier::get_addr() {
 }
 
 InstructionVector TArrayNumIdentifier::load() {
-  code->load(this->array->get_addr(this->num_value));
+  InstructionVector instructions;
+  instructions
+  .push(new Load(this->array->get_addr(this->num_value)));
+  return instructions;
 }
 
 InstructionVector TArrayNumIdentifier::negate() {
-  code->reset_acc();
-  code->sub(this->get_addr());
-  code->store(this->get_addr());
+  InstructionVector instructions;
+  instructions
+  .push(new Sub(0))
+  .push(new Sub(this->get_addr()))
+  .push(new Store(this->get_addr()));
+  return instructions;
 }

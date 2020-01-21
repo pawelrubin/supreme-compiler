@@ -6,17 +6,16 @@ integer NumberValue::get_value() {
 }
 
 InstructionVector NumberValue::load_value() {
-  code->insert_to_acc(this->value);
-}
-
-InstructionVector NumberValue::insert_to_VLR() {
-  code->insert_to_acc(this->value);
-  code->store(data->get_register(Register::VLR));
+  InstructionVector instructions;
+  instructions.append(code->insert_to_acc(this->value));
+  return instructions;
 }
 
 InstructionVector NumberValue::store_in_register(Register reg) {
-  code->insert_to_acc(this->value);
-  code->store(data->get_register(reg));
+  InstructionVector instructions;
+  instructions.append(code->insert_to_acc(this->value))
+  .push(new Store(data->get_register(reg)));
+  return instructions;
 }
 
 IdentifierValue::IdentifierValue(TIdentifier *identifier) {
@@ -24,22 +23,21 @@ IdentifierValue::IdentifierValue(TIdentifier *identifier) {
 }
 
 InstructionVector IdentifierValue::load_value() {
+  InstructionVector instructions;
   if (TArrayVariableIdentifier *avid = dynamic_cast<TArrayVariableIdentifier*>(this->identifier)) {
-    avid->load_addr_to_register(Register::IDR);
-    code->loadi(data->get_register(Register::IDR));
+    instructions.append(avid->load_addr_to_register(Register::IDR))
+    .push(new Loadi(data->get_register(Register::IDR)));
   } else {
-    code->load(this->identifier->get_addr());
+    instructions.push(new Load(this->identifier->get_addr()));
   }
+  return instructions;
 }
 
-InstructionVector IdentifierValue::insert_to_VLR() {
-  // this->identifier->
-}
 
 InstructionVector IdentifierValue::store_in_register(Register reg) {
-  // code->insert_to_acc(this->value);
-  // code->store(data->get_register(reg));
-  this->identifier->load_value_to_register(reg);
+  InstructionVector instructions;
+  instructions.append(this->identifier->load_value_to_register(reg));
+  return instructions;
 }
 
 TIdentifier* IdentifierValue::get_identifier() {
