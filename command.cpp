@@ -47,7 +47,6 @@ void TForToCommand::load_command(){
 }
 
 void TForDownToCommand::load_command() {
-  std::cerr<<"XD"<<std::endl;
   Variable* it = data->new_iterator(this->pidentifier);
 
   end->load_value();
