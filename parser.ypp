@@ -125,9 +125,7 @@ identifier:
 %%
 
 void yyerror(std::string s) {
-  std::cerr << "[ ERROR IN LINE " + std::to_string(yylineno) + " ] " 
-            << "yytext: \"" << std::string(yytext) << "\"; "
-            << "error message: " << s << std::endl;
+  std::cerr << "[ ERROR IN LINE " + std::to_string(yylineno) + " ] : " << s << std::endl;
   exit(1);
 }
 

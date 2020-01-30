@@ -10,6 +10,7 @@ void TIdentifier::load_value_to_register(Register reg) {
 
 TVariableIdentifier::TVariableIdentifier(ident var_name) : TIdentifier(var_name) {
   if (data->is_declared(var_name)) {
+    if (dynamic_cast<Array*>(data->get_symbol(var_name))) throw std::string(var_name + " wrong array usage.");
     this->variable = static_cast<Variable *>(data->get_symbol(var_name));
   } else {
     this->variable = data->declare_bad_variable(var_name);
@@ -37,8 +38,10 @@ void TVariableIdentifier::negate() {
 
 
 TArrayVariableIdentifier::TArrayVariableIdentifier(ident arr_name, ident var_name) : TIdentifier(arr_name + var_name) {
+  if (dynamic_cast<Variable*>(data->get_symbol(arr_name))) throw std::string(arr_name + " wrong variable usage.");
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   if (data->is_declared(var_name)) {
+    if (dynamic_cast<Array*>(data->get_symbol(var_name))) throw std::string(var_name + " wrong array usage.");
     this->variable = static_cast<Variable *>(data->get_symbol(var_name));
   } else {
     this->variable = data->declare_bad_variable(var_name);
@@ -65,6 +68,7 @@ void TArrayVariableIdentifier::negate() {
 }
 
 TArrayNumIdentifier::TArrayNumIdentifier(ident arr_name, integer num_value) : TIdentifier(arr_name) {
+  if (dynamic_cast<Variable*>(data->get_symbol(arr_name))) throw std::string(arr_name + " wrong variable usage.");
   this->array = static_cast<Array *>(data->get_symbol(arr_name));
   this->num_value = num_value;
 }
