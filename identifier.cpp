@@ -87,3 +87,7 @@ void TArrayNumIdentifier::negate() {
   code->sub(this->get_addr());
   code->store(this->get_addr());
 }
+
+integer TArrayNumIdentifier::get_num() {
+  return this->num_value;
+}

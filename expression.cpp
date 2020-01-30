@@ -20,54 +20,64 @@ void TBinaryExpression::load_expr(TIdentifier* result) {
   if (auto lid = dynamic_cast<IdentifierValue*>(lvalue)) {
     if (auto rid = dynamic_cast<IdentifierValue*>(rvalue)) {
       if (lid->get_identifier()->get_name() == rid->get_identifier()->get_name()) {
-        std::cerr<<"x OP x"<<std::endl;
-        switch (this->op){
-        case BinaryOperator::PLUS:
-          if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-            id->load_addr_to_register(Register::IDR1);
-            lid->load_value();
-            code->lshift();
-            code->storei(data->get_register(Register::IDR1));
-          } else {
-            lid->load_value();
-            code->lshift();
-            code->store(result->get_addr());
+        bool xOPx = true;
+        if (auto lanid = dynamic_cast<TArrayNumIdentifier*>(lid->get_identifier())) {
+          if (auto ranid = dynamic_cast<TArrayNumIdentifier*>(rid->get_identifier())) {
+            if (lanid->get_num() != ranid->get_num()) {
+              xOPx = false;
+            }            
           }
-          return;
-        case BinaryOperator::MINUS:
-          if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-            id->load_addr_to_register(Register::IDR1);
-            code->reset_acc();
-            code->storei(data->get_register(Register::IDR1));
-          } else {
-            code->reset_acc();
-            code->store(result->get_addr());
+        }
+        if (xOPx) {
+          std::cerr<<"x OP x"<<std::endl;
+          switch (this->op){
+          case BinaryOperator::PLUS:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              id->load_addr_to_register(Register::IDR1);
+              lid->load_value();
+              code->lshift();
+              code->storei(data->get_register(Register::IDR1));
+            } else {
+              lid->load_value();
+              code->lshift();
+              code->store(result->get_addr());
+            }
+            return;
+          case BinaryOperator::MINUS:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              id->load_addr_to_register(Register::IDR1);
+              code->reset_acc();
+              code->storei(data->get_register(Register::IDR1));
+            } else {
+              code->reset_acc();
+              code->store(result->get_addr());
+            }
+            return;
+          case BinaryOperator::DIV:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              id->load_addr_to_register(Register::IDR1);
+              code->reset_acc();
+              code->inc();
+              code->storei(data->get_register(Register::IDR1));
+            } else {
+              code->reset_acc();
+              code->inc();
+              code->store(result->get_addr());
+            }
+            return;
+          case BinaryOperator::MOD:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              id->load_addr_to_register(Register::IDR1);
+              code->reset_acc();
+              code->storei(data->get_register(Register::IDR1));
+            } else {
+              code->reset_acc();
+              code->store(result->get_addr());
+            }
+            return;
+          default:
+            break;
           }
-          return;
-        case BinaryOperator::DIV:
-          if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-            id->load_addr_to_register(Register::IDR1);
-            code->reset_acc();
-            code->inc();
-            code->storei(data->get_register(Register::IDR1));
-          } else {
-            code->reset_acc();
-            code->inc();
-            code->store(result->get_addr());
-          }
-          return;
-        case BinaryOperator::MOD:
-          if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-            id->load_addr_to_register(Register::IDR1);
-            code->reset_acc();
-            code->storei(data->get_register(Register::IDR1));
-          } else {
-            code->reset_acc();
-            code->store(result->get_addr());
-          }
-          return;
-        default:
-          break;
         }
       }
     }

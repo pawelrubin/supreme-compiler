@@ -354,5 +354,6 @@ class TArrayNumIdentifier : public TIdentifier {
     void load_addr_to_register(Register) override;
     void load() override;
     integer get_addr();
+    integer get_num();
     void negate() override;
 };
