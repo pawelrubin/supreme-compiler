@@ -64,7 +64,6 @@ std::string JumpInstruction::assembly() {
 void JumpInstruction::set_jump_destination(Instruction* jump_destination) {
   jump_destination->set_unsafe();
   this->jump_destination = jump_destination;
-  std::cerr << this->code << " " /*<< this */<< " : " << "SETTING DESTINATION: "<<this->jump_destination->get_code()<<" "/*<<this->jump_destination*/<<std::endl;
 }
 
 codeList CodeGenerator::generateCode() {
