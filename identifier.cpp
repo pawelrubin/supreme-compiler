@@ -111,3 +111,7 @@ InstructionVector TArrayNumIdentifier::negate() {
   .push(new Store(this->get_addr()));
   return instructions;
 }
+
+integer TArrayNumIdentifier::get_num() {
+  return this->num_value;
+}

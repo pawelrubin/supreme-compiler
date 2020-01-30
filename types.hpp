@@ -351,4 +351,5 @@ class TArrayNumIdentifier : public TIdentifier {
     InstructionVector load() override;
     integer get_addr();
     InstructionVector negate() override;
+    integer get_num();
 };

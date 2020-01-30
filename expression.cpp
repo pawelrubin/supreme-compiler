@@ -22,69 +22,79 @@ InstructionVector TValueExpression::load_expr(TIdentifier* result) {
 InstructionVector TBinaryExpression::load_expr(TIdentifier* result) {
   // y = x OP x TODO refactor
   InstructionVector instructions;
-  // if (auto lid = dynamic_cast<IdentifierValue*>(lvalue)) {
-  //   if (auto rid = dynamic_cast<IdentifierValue*>(rvalue)) {
-  //     if (lid->get_identifier()->get_name() == rid->get_identifier()->get_name()) {
-  //       std::cerr<<"x OP x"<<std::endl;
-  //       switch (this->op){
-  //       case BinaryOperator::PLUS:
-  //         if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-  //           instructions
-  //           .append(id->load_addr_to_register(Register::IDR1))
-  //           .append(lid->load_value())
-  //           .append(code->lshift())
-  //           .push(new Storei(data->get_register(Register::IDR1)));
-  //         } else {
-  //           instructions
-  //           .append(lid->load_value())
-  //           .append(code->lshift())
-  //           .push(new Store(result->get_addr()));
-  //         }
-  //         return instructions;
-  //       case BinaryOperator::MINUS:
-  //         if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-  //           instructions
-  //           .append(id->load_addr_to_register(Register::IDR1))
-  //           .push(new Sub(0))
-  //           .push(new Storei(data->get_register(Register::IDR1)));
-  //         } else {
-  //           instructions
-  //           .push(new Sub(0))
-  //           .push(new Store(result->get_addr()));
-  //         }
-  //         return instructions;
-  //       case BinaryOperator::DIV:
-  //         if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-  //           instructions
-  //           .append(id->load_addr_to_register(Register::IDR1))
-  //           .push(new Sub(0))
-  //           .push(new Inc())
-  //           .push(new Storei(data->get_register(Register::IDR1)));
-  //         } else {
-  //           instructions
-  //           .push(new Sub(0))
-  //           .push(new Inc())
-  //           .push(new Store(result->get_addr()));
-  //         }
-  //         return instructions;
-  //       case BinaryOperator::MOD:
-  //         if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
-  //           instructions
-  //           .append(id->load_addr_to_register(Register::IDR1))
-  //           .push(new Sub(0))
-  //           .push(new Storei(data->get_register(Register::IDR1)));
-  //         } else {
-  //           instructions
-  //           .push(new Sub(0))
-  //           .push(new Store(result->get_addr()));
-  //         }
-  //         return instructions;
-  //       default:
-  //         break;
-  //       }
-  //     }
-  //   }
-  // }
+  if (auto lid = dynamic_cast<IdentifierValue*>(lvalue)) {
+    if (auto rid = dynamic_cast<IdentifierValue*>(rvalue)) {
+      if (lid->get_identifier()->get_name() == rid->get_identifier()->get_name()) {
+        bool xOPx = true;
+        if (auto lanid = dynamic_cast<TArrayNumIdentifier*>(lid->get_identifier())) {
+          if (auto ranid = dynamic_cast<TArrayNumIdentifier*>(rid->get_identifier())) {
+            if (lanid->get_num() != ranid->get_num()) {
+              xOPx = false;
+            }            
+          }
+        }
+        if (xOPx) {
+        std::cerr<<"x OP x"<<std::endl;
+          switch (this->op){
+          case BinaryOperator::PLUS:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              instructions
+              .append(id->load_addr_to_register(Register::IDR1))
+              .append(lid->load_value())
+              .append(code->lshift())
+              .push(new Storei(data->get_register(Register::IDR1)));
+            } else {
+              instructions
+              .append(lid->load_value())
+              .append(code->lshift())
+              .push(new Store(result->get_addr()));
+            }
+            return instructions;
+          case BinaryOperator::MINUS:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              instructions
+              .append(id->load_addr_to_register(Register::IDR1))
+              .push(new Sub(0))
+              .push(new Storei(data->get_register(Register::IDR1)));
+            } else {
+              instructions
+              .push(new Sub(0))
+              .push(new Store(result->get_addr()));
+            }
+            return instructions;
+          case BinaryOperator::DIV:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              instructions
+              .append(id->load_addr_to_register(Register::IDR1))
+              .push(new Sub(0))
+              .push(new Inc())
+              .push(new Storei(data->get_register(Register::IDR1)));
+            } else {
+              instructions
+              .push(new Sub(0))
+              .push(new Inc())
+              .push(new Store(result->get_addr()));
+            }
+            return instructions;
+          case BinaryOperator::MOD:
+            if (TArrayVariableIdentifier *id = dynamic_cast<TArrayVariableIdentifier*>(result)) {
+              instructions
+              .append(id->load_addr_to_register(Register::IDR1))
+              .push(new Sub(0))
+              .push(new Storei(data->get_register(Register::IDR1)));
+            } else {
+              instructions
+              .push(new Sub(0))
+              .push(new Store(result->get_addr()));
+            }
+            return instructions;
+          default:
+            break;
+          }
+        }
+      }
+    }
+  }
 
   // x OP num
   if (auto rv = dynamic_cast<NumberValue*>(rvalue)) {
