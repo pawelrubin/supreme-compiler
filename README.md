@@ -18,21 +18,21 @@ $ make
 
 # Sposób użycia
 
-```
-$ ./compiler <plik wejsciowy> <plik wyjsciowy>
+```shell
+$ ./compiler <plik wejściowy> <plik wyjściowy>
 ```
 
 # Pliki
 
 - `typedefs.hpp` - pomocnicze definicje typów
-- `parser.ypp` - główny plik, zawierający gramatykę oraz funkcję main.
+- `parser.ypp` - główny plik, zawierający gramatykę oraz funkcję main
 - `lexer.l` - plik leksera
 - `data.hpp`, `data.cpp` - tablica symboli
 - `code.hpp`, `code` - obsługa assemblera
 - `types.hpp` - deklaracja klas reprezentujących gramatykę
-- `program.cpp` - imlementacja klasy `Program` reprezentującej wyprowadzenie **_program_**
-- `command.cpp` - imlementacja klasy `Command` reprezentującej wyprowadzenia **_command_** oraz **_commands_**
-- `condition.cpp` - imlementacja klasy `Condition` reprezentującej wyprowadzenie **_condition_**
-- `expression.cpp` - imlementacja klasy `Expression` reprezentującej wyprowadzenie **_expression_**
-- `value.cpp` - imlementacja klasy `Value` reprezentującej wyprowadzenie **_value_**
-- `identifier.cpp` - imlementacja klasy `Identifier` reprezentującej wyprowadzenie **_identifier_**
+- `program.cpp` - implementacja klasy `Program` reprezentującej wyprowadzenie **_program_**
+- `command.cpp` - implementacja klasy `Command` reprezentującej wyprowadzenia **_command_** oraz **_commands_**
+- `condition.cpp` - implementacja klasy `Condition` reprezentującej wyprowadzenie **_condition_**
+- `expression.cpp` - implementacja klasy `Expression` reprezentującej wyprowadzenie **_expression_**
+- `value.cpp` - implementacja klasy `Value` reprezentującej wyprowadzenie **_value_**
+- `identifier.cpp` - implementacja klasy `Identifier` reprezentującej wyprowadzenie **_identifier_**
