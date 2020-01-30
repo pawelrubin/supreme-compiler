@@ -147,8 +147,8 @@ int main(int argc, char **argv) {
       std::cout << "Parsed successfully" << std::endl;
       auto instructions = program->load_program();
       CodeGenerator generator(instructions);
-      // generator.peephole();
-      // std::cout << "Successfull peephole optimization" << std::endl;
+      generator.peephole();
+      std::cout << "Successfull peephole optimization" << std::endl;
       auto result_code = generator.generateCode();
       std::cout << "Compiled successfully" << std::endl;
       code->fprint_code(argv[2], result_code);
