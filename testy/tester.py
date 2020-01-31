@@ -2,6 +2,7 @@
 import subprocess
 
 tests = [
+    ("bug.imp", ([], [-131072])),
     ("program0.imp", ([1345601,], [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1],)),
     ("program1.imp", ([], [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97])),
     ("program2.imp", ([12345678901], [857, 1, 14405693, 1])),
@@ -18,6 +19,8 @@ tests = [
     ("7-loopiii.imp", ([1, 0, 2], [31001, 40900, 2222012])),
     ("8-for.imp", ([12, 23, 34], [507, 4379, 0])),
     ("9-sort.imp", ([], [1, 14, 12, 7, 6, 15, 3, 19, 13, 21, 18, 22, 9, 11, 16, 17, 8, 20, 4, 10, 2, 5, 1234567890, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22,],)),
+    ("6-mod-mult.imp", ([-2, 17, -115792089237316195423570985008687907853269984665640564039457584007913129639937], [-131072])),
+    ("6-mod-mult.imp", ([115792089237316195423570985008687907853269984665640564039457584007913129639935, 17, -115792089237316195423570985008687907853269984665640564039457584007913129639937], [-131072])),
 ]
 
 FAIL = "\033[91m" + "FAIL" + "\033[0m"
@@ -26,7 +29,7 @@ PASS = "\033[92m" + "PASS" + "\033[0m"
 for i, test in enumerate(tests):
     subprocess.run(["../kompilator", test[0], f"/tmp/test_{i}"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     args = "\n".join(str(x) for x in test[1][0]) + "\n" if len(test[1][0]) > 0 else ""
-    test_vm = subprocess.Popen(["./test_vm", f"/tmp/test_{i}"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    test_vm = subprocess.Popen(["./test_cln", f"/tmp/test_{i}"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     cout, _ = test_vm.communicate(input=args.encode("utf-8"))
     results = cout.decode("utf-8").split("\n")[:-2]
     cost = cout.decode("utf-8").split("\n")[-2]

@@ -599,40 +599,48 @@ void TBinaryExpression::mod(integer identifier_address) {
     code->jump(k);
   // } while (multiple != 0)
     
-    code->load(data->get_register(Register::D));
-  // if (sign_bit) {
-    k = code->jzero(); 
-      rvalue->load_value();
-      code->jneg(2); code->jump(code->get_instruction_count() + 3); // b < 0
-        code->add(addr_for_result);
-        code->store(addr_for_result);
-      
-      lvalue->load_value();
-      integer l = code->get_instruction_count();
-      code->jneg(2); code->jump(); // a < 0
+
+  code->load(addr_for_result);
+  // code->put();
+  integer r = code->jzero(); 
+  // if (remain != 0) {
+      code->load(data->get_register(Register::D));
+    // if (sign_bit) {
+      k = code->jzero(); 
         rvalue->load_value();
-        code->sub(addr_for_result);
-        code->store(addr_for_result);
-      code->insert_jump_address(l + 1 , 1 + code->get_instruction_count());
-      integer m = code->get_instruction_count();
-      code->jump();
-    code->insert_jump_address(k);
-  // } else { 
-      lvalue->load_value();
-      code->jpos(5);
-        code->load(addr_for_result);
-        code->sub(addr_for_result);
-        code->sub(addr_for_result);
-        code->store(addr_for_result);
-    code->insert_jump_address(m);
-  // }
+        code->jneg(2); code->jump(code->get_instruction_count() + 3); // b < 0
+          code->add(addr_for_result);
+          code->store(addr_for_result);
+        
+        lvalue->load_value();
+        integer l = code->get_instruction_count();
+        code->jneg(2); code->jump(); // a < 0
+          rvalue->load_value();
+          code->sub(addr_for_result);
+          code->store(addr_for_result);
+        code->insert_jump_address(l + 1 , 1 + code->get_instruction_count());
+        integer m = code->get_instruction_count();
+        code->jump();
+      code->insert_jump_address(k);
+    // } else { 
+        lvalue->load_value();
+        code->jpos(5);
+          code->load(addr_for_result);
+          code->sub(addr_for_result);
+          code->sub(addr_for_result);
+          code->store(addr_for_result);
+      code->insert_jump_address(m);
+    // }
+  // }  
 
     if (addr_for_result == data->get_register(Register::F)) {
       code->load(data->get_register(Register::F));
       code->storei(identifier_address);
     }
 
+
   integer z = code->jump();
+  code->insert_jump_address(r);
   code->insert_jump_address(j);
 // } else {
     if (addr_for_result == data->get_register(Register::F)) {
