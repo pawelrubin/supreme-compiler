@@ -426,6 +426,8 @@ void TBinaryExpression::div(integer identifier_address) {
   TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
   TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
+  integer addr_for_result = data->get_register(Register::A);
+
 // if (divisor != 0) {
   rid->load();
   integer j = code->jzero();
@@ -433,10 +435,6 @@ void TBinaryExpression::div(integer identifier_address) {
     code->set_sign_bit(lid, rid); // stores sign bit in Register::D
 
     code->reset_acc();
-    integer addr_for_result = identifier_address;
-    if (identifier_address == data->get_register(Register::IDR1)) {
-      addr_for_result = data->get_register(Register::A);
-    }
     code->store(addr_for_result);   // result = 0
     code->inc();
     code->store(data->get_register(Register::E));   // multiple = 1
@@ -499,26 +497,22 @@ void TBinaryExpression::div(integer identifier_address) {
         code->store(addr_for_result);
     code->insert_jump_address(l);    
     // }
-    
-    if (addr_for_result == data->get_register(Register::A)) {
-      code->load(data->get_register(Register::A));
-      code->storei(identifier_address);
-    }
+
+    code->load(addr_for_result);
   
   // }
-  integer z = code->jump();
-  code->insert_jump_address(j);
+    integer z = code->jump();
+    code->insert_jump_address(j);
 // } else {
-    if (addr_for_result == data->get_register(Register::A)) {
-      code->load(data->get_register(Register::A));
-      code->reset_acc();
-      code->storei(identifier_address);
-    } else {
-      code->reset_acc();
-      code->store(addr_for_result);
-    }
+    code->reset_acc();
+    
   code->insert_jump_address(z);
 // }
+  if (identifier_address == data->get_register(Register::IDR1)) {
+    code->storei(identifier_address);
+  } else {
+    code->store(identifier_address);
+  }
 }
 
 void TBinaryExpression::mod(integer identifier_address) {
@@ -540,10 +534,7 @@ void TBinaryExpression::mod(integer identifier_address) {
   TIdentifier *lid = new TVariableIdentifier(new Variable(data->get_register(Register::B)));
   TIdentifier *rid = new TVariableIdentifier(new Variable(data->get_register(Register::C)));
 
-  integer addr_for_result = identifier_address;
-  if (identifier_address == data->get_register(Register::IDR1)) {
-    addr_for_result = data->get_register(Register::F);
-  }
+  integer addr_for_result = data->get_register(Register::G);
 
 // if (divisor != 0) {
   rid->load();
@@ -633,24 +624,18 @@ void TBinaryExpression::mod(integer identifier_address) {
     // }
   // }  
 
-    if (addr_for_result == data->get_register(Register::F)) {
-      code->load(data->get_register(Register::F));
-      code->storei(identifier_address);
-    }
+    code->load(addr_for_result);
 
-
-  integer z = code->jump();
-  code->insert_jump_address(r);
-  code->insert_jump_address(j);
+    integer z = code->jump();
+    code->insert_jump_address(r);
+    code->insert_jump_address(j);
 // } else {
-    if (addr_for_result == data->get_register(Register::F)) {
-      code->load(data->get_register(Register::F));
-      code->reset_acc();
-      code->storei(identifier_address);
-    } else {
-      code->reset_acc();
-      code->store(addr_for_result);
-    }
+    code->reset_acc();
   code->insert_jump_address(z);
 // }
+  if (identifier_address == data->get_register(Register::IDR1)) {
+    code->storei(identifier_address);
+  } else {
+    code->store(identifier_address);
+  }
 }

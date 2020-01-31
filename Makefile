@@ -39,4 +39,4 @@ cleanall: clean
 	rm -f kompilator
 
 test:
-	cd jftt2019-testy && python3.8 tester.py
+	cd testy && ./tester.py
