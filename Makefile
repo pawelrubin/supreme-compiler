@@ -36,7 +36,7 @@ clean:
 	rm -f *.o *.tab.cpp *.tab.hpp lexer.c
 
 cleanall: clean
-	rm -f compiler
+	rm -f kompilator
 
 test:
 	cd jftt2019-testy && python3.8 tester.py
