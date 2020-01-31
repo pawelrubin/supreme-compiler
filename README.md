@@ -19,7 +19,7 @@ $ make
 # Sposób użycia
 
 ```shell
-$ ./compiler <plik wejściowy> <plik wyjściowy>
+$ ./kompilator <plik wejściowy> <plik wyjściowy>
 ```
 
 # Pliki
